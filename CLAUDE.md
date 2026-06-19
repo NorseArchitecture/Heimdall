@@ -18,6 +18,6 @@ This repo's own `.claude/settings.json` carries a `SessionStart` hook that shoul
 
 Heimdall is **the gate** — `Norse.Access`: auth services built on Himinbjorg, presenting one access ruleset uniformly across Blazor Server, WASM, and MAUI, plus the admin Blazor components and the backing gRPC service. It is the topmost realm in the dependency chain among the current submodules — nothing else rides above it.
 
-This repo is currently a bare shell (LICENSE only) — no specs have converged here yet. Before writing any code: brainstorm → spec → plan, recorded in `../Glitnir/docs/superpowers/`, per the org's spec-first discipline. Do not scaffold a project structure ahead of a converged spec.
+This repo is currently a bare shell (LICENSE only) — no specs have converged here yet. Before writing any code: brainstorm → spec → plan, recorded in `../Glitnir/docs/Heimdall/`, per the org's spec-first discipline. Do not scaffold a project structure ahead of a converged spec.
 
 See `../Bifrost/CLAUDE.md` (§2 The Naming Model) and `../Glitnir/CLAUDE.md` (§1 Bounded Context Map) for the full realm table and how Heimdall fits the rest of the cosmos.
