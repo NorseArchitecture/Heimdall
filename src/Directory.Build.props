@@ -1,0 +1,18 @@
+<Project>
+	<Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+	<PropertyGroup>
+		<Authors>Norse Architecture</Authors>
+		<Deterministic>true</Deterministic>
+		<!-- Self-certify AOT/trim at the source so violations fail here, not downstream. -->
+		<IsAotCompatible>true</IsAotCompatible>
+		<MinVerTagPrefix>v</MinVerTagPrefix>
+		<PackageId>Norse.$(MSBuildProjectName)</PackageId>
+	</PropertyGroup>
+	<ItemGroup>
+		<InternalsVisibleTo Include="$(AssemblyName).Tests" />
+		<PackageReference Include="MinVer" Version="*">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+	</ItemGroup>
+</Project>
