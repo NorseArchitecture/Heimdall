@@ -23,6 +23,10 @@
 		<RootNamespace>Norse.$(MSBuildProjectName)</RootNamespace>
 		<TargetFramework>net11.0</TargetFramework>
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+		<!-- Default to false unless the directory above overrides i.e. bifrost is loaded -->
+		<UseProjectReferences Condition="'$(UseProjectReferences)' == ''">false</UseProjectReferences>
 		<WarningLevel>9999</WarningLevel>
+		<_ParentProps>$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))</_ParentProps>
 	</PropertyGroup>
+	<Import Project="$(_ParentProps)" Condition="Exists('$(_ParentProps)')" />
 </Project>
