@@ -2,6 +2,10 @@
 
 > Heimdall — the watchman who decides who crosses Bifrost.
 
+<img width="1024" height="1280" alt="Heimdall — the ever-vigilant watchman of the gods, keeper of the Bifrost, whose sight and hearing know no limit" src="https://github.com/user-attachments/assets/22732b59-696b-4ab6-9d8a-872ebf531d96" />
+
+*Image credit: [@norsemythologyclips](https://www.instagram.com/norsemythologyclips/) — go follow them.*
+
 Auth services for the Norse Architecture — **`Norse.Access`**: one set of access rules enforced identically across Blazor Server, WASM, and MAUI, with Blazor components for function and administration and the backing gRPC service. It is the topmost realm in the dependency chain among the current submodules — nothing else rides above it.
 
 ## Status
