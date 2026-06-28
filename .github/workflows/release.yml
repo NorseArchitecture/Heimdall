@@ -1,0 +1,22 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+  packages: write
+  security-events: write
+  pull-requests: write 
+
+jobs:
+  release:
+    uses: NorseArchitecture/.github/.github/workflows/release-nuget.yml@master
+
+  phone-home:
+    needs: [release]
+    uses: NorseArchitecture/.github/.github/workflows/phone-home-nuget.yml@master
+    secrets:
+      token: ${{ secrets.SCATTER_PAT }}

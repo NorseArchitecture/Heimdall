@@ -1,0 +1,11 @@
+name: Update Bifrost
+
+on:
+  push:
+    branches: [master]
+
+jobs:
+  update-bifrost:
+    uses: NorseArchitecture/.github/.github/workflows/update-bifrost.yml@master
+    secrets:
+      bifrost_token: ${{ secrets.BIFROST_TOKEN }}
