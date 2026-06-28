@@ -2,7 +2,7 @@
 
 > Heimdall — the watchman who decides who crosses Bifrost.
 
-<img width="1024" height="1280" alt="Heimdall — the ever-vigilant watchman of the gods, keeper of the Bifrost, whose sight and hearing know no limit" src="https://github.com/user-attachments/assets/22732b59-696b-4ab6-9d8a-872ebf531d96" />
+![Heimdall — the ever-vigilant watchman of the gods, keeper of the Bifrost, whose sight and hearing know no limit](https://github.com/user-attachments/assets/22732b59-696b-4ab6-9d8a-872ebf531d96 "Heimdall — the watchman who decides who crosses Bifrost")
 
 *Image credit: [@norsemythologyclips](https://www.instagram.com/norsemythologyclips/) — go follow them.*
 
