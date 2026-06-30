@@ -5,11 +5,19 @@
 			$([MSBuild]::GetPathOfFileAbove('Directory.Build.targets', '$(MSBuildThisFileDirectory)../../'))
 		</_BifrostTargets>
 	</PropertyGroup>
-	<Import Project="$(_BifrostTargets)" Condition="Exists('$(_BifrostTargets)')" />
-	<ItemGroup Condition="!Exists('$(_BifrostTargets)')">
-		<PackageReference Include="@(NorseRef->'Norse.%(Identity)')" Version="*" />
-		<PackageReference Include="@(NorseDesignRef->'Norse.%(Identity)')" Version="*">
-			<PrivateAssets>all</PrivateAssets>
-		</PackageReference>
-	</ItemGroup>
+	<Choose>
+		<When Condition="Exists('$(_BifrostTargets)')">
+			<ItemGroup>
+				<Import Project="$(_BifrostTargets)" />
+			</ItemGroup>
+		</When>
+		<Otherwise>
+			<ItemGroup>
+				<PackageReference Include="@(NorseRef->'Norse.%(Identity)')" Version="*" />
+				<PackageReference Include="@(NorseDesignRef->'Norse.%(Identity)')" Version="*">
+					<PrivateAssets>all</PrivateAssets>
+				</PackageReference>
+			</ItemGroup>
+		</Otherwise>
+	</Choose>
 </Project>
