@@ -4,7 +4,7 @@
 		<IsPackable>false</IsPackable>
 		<IsPublishable>false</IsPublishable>
 		<IsTestProject>true</IsTestProject>
-		<NoWarn>$(NoWarn);CA1812;CA1859;CS1591;IDE0051</NoWarn>
+		<NoWarn>$(NoWarn);CA1707;CA1812;CA1859;CS1591;IDE0051</NoWarn>
 		<UseMicrosoftTestingPlatformRunner>true</UseMicrosoftTestingPlatformRunner>
 	</PropertyGroup>
 	<ItemGroup>
