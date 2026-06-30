@@ -14,6 +14,7 @@ permissions:
 jobs:
   release:
     uses: NorseArchitecture/.github/.github/workflows/release-nuget.yml@master
+    secrets: inherit
 
   phone-home:
     needs: [release]
