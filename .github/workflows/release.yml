@@ -18,6 +18,6 @@ jobs:
 
   phone-home:
     needs: [release]
-    uses: NorseArchitecture/.github/.github/workflows/phone-home-nuget.yml@master
+    uses: NorseArchitecture/.github/.github/workflows/sound-gjallarhorn.yml@master
     secrets:
       token: ${{ secrets.SCATTER_PAT }}
