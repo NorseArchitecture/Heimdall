@@ -16,7 +16,7 @@ jobs:
     uses: NorseArchitecture/.github/.github/workflows/release-nuget.yml@master
     secrets: inherit
 
-  phone-home:
+  sound-gjallarhorn:
     needs: [release]
     uses: NorseArchitecture/.github/.github/workflows/sound-gjallarhorn.yml@master
     secrets:
