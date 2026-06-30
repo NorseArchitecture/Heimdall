@@ -5,6 +5,7 @@
 			$([MSBuild]::GetPathOfFileAbove('Directory.Build.targets', '$(MSBuildThisFileDirectory)../../'))
 		</_BifrostTargets>
 	</PropertyGroup>
+	<Import Project="$(_BifrostTargets)" Condition="Exists('$(_BifrostTargets)')" />
 	<Choose>
 		<When Condition="Exists('$(_BifrostTargets)')">
 			<ItemGroup>
