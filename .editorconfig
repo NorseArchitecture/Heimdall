@@ -97,11 +97,18 @@ dotnet_diagnostic.IDE0040.severity = error
 # (e.g. CultureInfo.GetCultureInfo(...)) together with object creation, so
 # preferring var for "apparent" types keeps var on factory/return assignments.
 # IDE0090 still requires target-typed new() wherever the type is written out.
+# IDE0007 is deliberately below error: the same heuristic can't distinguish
+# "var on a factory-method return" (the case this section keeps var for) from
+# "explicit type on a direct `new Type(...)` construction" (the other half of
+# the house style, which Roslyn has no separate knob for) — so an explicit
+# type on construction stays a suggestion, not a build failure. IDE0008 never
+# fires under this config (var is preferred in every category above), so its
+# severity is moot but left at error for documentation.
 csharp_style_var_for_built_in_types = true
 csharp_style_var_when_type_is_apparent = true
 csharp_style_var_elsewhere = true
 csharp_style_implicit_object_creation_when_type_is_apparent = true
-dotnet_diagnostic.IDE0007.severity = error
+dotnet_diagnostic.IDE0007.severity = suggestion
 dotnet_diagnostic.IDE0008.severity = error
 dotnet_diagnostic.IDE0090.severity = error
 
