@@ -5,7 +5,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "echo '{\"continue\":false,\"stopReason\":\"This is Heimdall, a Bifrost submodule. Norse Architecture settings (the superpowers plugin, permission rules) only apply when Bifrost itself is the session root, since Claude Code never merges a submodule .claude/settings.json into a parent-launched session. Exit, cd to ../Bifrost, and run claude there instead.\",\"systemMessage\":\"Blocked: launch Claude Code from the Bifrost root, not from inside Heimdall.\"}'"
+            "command": "REALM=$(basename \"$(git rev-parse --show-toplevel)\"); printf '{\"continue\":false,\"stopReason\":\"This is %s, a Bifrost submodule. Norse Architecture settings (the superpowers plugin, permission rules) only apply when Bifrost itself is the session root, since Claude Code never merges a submodule .claude/settings.json into a parent-launched session. Exit, cd to ../Bifrost, and run claude there instead.\",\"systemMessage\":\"Blocked: launch Claude Code from the Bifrost root, not from inside %s.\"}' \"$REALM\" \"$REALM\""
           }
         ]
       }
