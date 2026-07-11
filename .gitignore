@@ -486,3 +486,6 @@ $RECYCLE.BIN/
 # Vim temporary swap files
 *.swp
 coverage-report/
+
+# Claude Code superpowers skill scratch state (session artifacts, never shipped)
+.superpowers/
