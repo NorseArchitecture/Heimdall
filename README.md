@@ -6,7 +6,7 @@
 
 *Image credit: [@norsemythologyclips](https://www.instagram.com/norsemythologyclips/) — go follow them.*
 
-Auth services for the Norse Architecture — **`Norse.Access`**: one set of access rules enforced identically across Blazor Server, WASM, and MAUI, with Blazor components for function and administration and the backing gRPC service. It is the topmost realm in the dependency chain among the current submodules — nothing else rides above it.
+The authn story for the Norse Architecture — **`Norse.AuthN`**: login, register, forgot-password, 2FA setup, recovery, and reset, enforced identically across Blazor Server, WASM, and MAUI, with the backing gRPC service. It is the topmost realm in the dependency chain among the current submodules — nothing else rides above it.
 
 ## Status
 
