@@ -489,3 +489,11 @@ coverage-report/
 
 # Claude Code superpowers skill scratch state (session artifacts, never shipped)
 .superpowers/
+
+# Playwright MCP session artifacts (browser profile, traces)
+.playwright-mcp/
+
+# Ad hoc screenshots dropped at repo root during a session (not nested design/doc assets)
+/*.png
+/*.jpg
+/*.jpeg
