@@ -14,7 +14,7 @@
 		<PackageId>Norse.$(MSBuildProjectName)</PackageId>
 		<!-- Packed only if the project itself drops a README.md next to its csproj — see the
 		     conditional None item below. No per-project MSBuild wiring needed anywhere else. -->
-		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<PackageReadmeFile Condition="Exists('README.md')">README.md</PackageReadmeFile>
 		<!-- LICENSE already exists at every realm's repo root (universal scatter group) — packed from
 		     there directly, no per-project file needed at all, unlike README.md above. -->
 		<PackageLicenseFile>LICENSE</PackageLicenseFile>
