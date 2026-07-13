@@ -9,15 +9,31 @@ permissions:
   contents: write
   packages: write
   security-events: write
-  pull-requests: write 
+  pull-requests: write
 
 jobs:
-  release:
-    uses: NorseArchitecture/.github/.github/workflows/release-nuget.yml@master
+  build-test:
+    uses: NorseArchitecture/.github/.github/workflows/ci-build-test.yml@master
+    secrets: inherit
+
+  codeql:
+    uses: NorseArchitecture/.github/.github/workflows/codeql.yml@master
+    secrets: inherit
+    with:
+      language: csharp
+
+  publish-nuget:
+    needs: [build-test, codeql]
+    uses: NorseArchitecture/.github/.github/workflows/publish-nuget.yml@master
+    secrets: inherit
+
+  create-release:
+    needs: [publish-nuget]
+    uses: NorseArchitecture/.github/.github/workflows/create-release.yml@master
     secrets: inherit
 
   sound-gjallarhorn:
-    needs: [release]
+    needs: [publish-nuget]
     uses: NorseArchitecture/.github/.github/workflows/sound-gjallarhorn.yml@master
     secrets:
       token: ${{ secrets.SCATTER_PAT }}
