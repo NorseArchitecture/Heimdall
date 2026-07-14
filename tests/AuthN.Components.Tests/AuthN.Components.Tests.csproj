@@ -1,4 +1,8 @@
-<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+	<ItemGroup>
+		<PackageReference Include="bunit" Version="*" />
+		<PackageReference Include="NSubstitute" Version="*" />
+	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="../../src/AuthN.Components/AuthN.Components.csproj" />
 	</ItemGroup>
