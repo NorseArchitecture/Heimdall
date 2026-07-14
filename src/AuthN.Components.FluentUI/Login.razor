@@ -1,0 +1,61 @@
+@page "/auth/login"
+@rendermode InteractiveAuto
+@inject IAuthenticationGateway AuthenticationGateway
+@inject NavigationManager Navigation
+
+<PageTitle>Log in</PageTitle>
+
+<h1>Log in</h1>
+
+<EditForm EditContext="_editContext" OnValidSubmit="HandleLoginAsync" FormName="authn-login">
+	<FluentValidator />
+	<ValidationSummary />
+	<FluentTextInput @bind-Value="_request.Email" Label="Email" Required="true" />
+	<FluentTextInput @bind-Value="_request.Password" TextInputType="TextInputType.Password" Label="Password" Required="true" />
+	<FluentCheckbox @bind-Value="_request.RememberMe" Label="Remember me" />
+	<FluentButton Type="ButtonType.Submit" Appearance="ButtonAppearance.Primary">Log in</FluentButton>
+</EditForm>
+
+@code {
+	readonly LoginRequest _request = new() { Email = "", Password = "" };
+	EditContext _editContext = default!;
+	ValidationMessageStore _messageStore = default!;
+
+	protected override void OnInitialized()
+	{
+		_editContext = new EditContext(_request);
+		_messageStore = new ValidationMessageStore(_editContext);
+	}
+
+	async Task HandleLoginAsync()
+	{
+		_messageStore.Clear();
+		var result = await AuthenticationGateway.Login(_request);
+
+		if (!result.Succeeded)
+		{
+			// Succeeded=false with an EMPTY Errors dictionary is the deliberate anti-enumeration
+			// collapse (spec §9.3) — wrong username and wrong password both land here with nothing
+			// more specific the server is willing to say. Synthesize one generic message for that
+			// case; LockedOut/NotAllowed/Validation always arrive with Errors already populated.
+			var errors = result.Errors.Count > 0
+				? result.Errors
+				: new Dictionary<string, string[]> { [""] = ["Invalid email or password."] };
+
+			foreach (var (field, messages) in errors)
+			{
+				var identifier = new FieldIdentifier(_request, field);
+				foreach (var message in messages)
+					_messageStore.Add(identifier, message);
+			}
+
+			_editContext.NotifyValidationStateChanged();
+			return;
+		}
+
+		// Non-null only when this request couldn't complete the sign-in itself (an established Blazor
+		// Server interactive circuit, where the response has already started) -- a forced full-page
+		// navigation to the completion endpoint finishes it on a genuine new request instead.
+		Navigation.NavigateTo(result.DeferredCompletionUrl ?? "/", forceLoad: true);
+	}
+}
