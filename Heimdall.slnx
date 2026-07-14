@@ -1,0 +1,24 @@
+<Solution>
+	<Folder Name="/Solution Items/">
+		<File Path=".editorconfig" />
+		<File Path=".gitattributes" />
+		<File Path=".gitignore" />
+		<File Path="CLAUDE.md" />
+		<File Path="Directory.Build.props" />
+		<File Path="global.json" />
+		<File Path="LICENSE" />
+		<File Path="nuget.config" />
+		<File Path="README.md" />
+	</Folder>
+	<Folder Name="/src/">
+		<File Path="src/Directory.Build.props" />
+		<File Path="src/Directory.Build.targets" />
+		<Project Path="src/AuthN.Components/AuthN.Components.csproj" />
+		<Project Path="src/AuthN.Components.FluentUI/AuthN.Components.FluentUI.csproj" />
+	</Folder>
+	<Folder Name="/tests/">
+		<File Path="tests/Directory.Build.props" />
+		<File Path="tests/Directory.Build.targets" />
+		<Project Path="tests/AuthN.Components.Tests/AuthN.Components.Tests.csproj" />
+	</Folder>
+</Solution>

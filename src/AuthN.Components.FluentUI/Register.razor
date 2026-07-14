@@ -1,0 +1,51 @@
+@page "/auth/register"
+@rendermode InteractiveAuto
+@inject IAuthenticationGateway AuthenticationGateway
+@inject NavigationManager Navigation
+
+<PageTitle>Register</PageTitle>
+
+<h1>Register</h1>
+
+<EditForm EditContext="_editContext" OnValidSubmit="HandleRegisterAsync" FormName="authn-register">
+	<FluentValidator />
+	<ValidationSummary />
+	<FluentTextInput @bind-Value="_request.Email" Label="Email" Required="true" />
+	<FluentTextInput @bind-Value="_request.Password" TextInputType="TextInputType.Password" Label="Password" Required="true" />
+	<FluentButton Type="ButtonType.Submit" Appearance="ButtonAppearance.Primary">Register</FluentButton>
+</EditForm>
+
+@code {
+	readonly RegisterRequest _request = new() { Email = "", Password = "" };
+	EditContext _editContext = default!;
+	ValidationMessageStore _messageStore = default!;
+
+	protected override void OnInitialized()
+	{
+		_editContext = new EditContext(_request);
+		_messageStore = new ValidationMessageStore(_editContext);
+	}
+
+	async Task HandleRegisterAsync()
+	{
+		_messageStore.Clear();
+		var result = await AuthenticationGateway.Register(_request);
+
+		if (!result.Succeeded)
+		{
+			// Register never produces an empty Errors dictionary on failure — Conflict/Validation are
+			// always populated (spec §9.3), unlike Login's anti-enumeration collapse. No fallback needed.
+			foreach (var (field, messages) in result.Errors)
+			{
+				var identifier = new FieldIdentifier(_request, field);
+				foreach (var message in messages)
+					_messageStore.Add(identifier, message);
+			}
+
+			_editContext.NotifyValidationStateChanged();
+			return;
+		}
+
+		Navigation.NavigateTo("/auth/login");
+	}
+}

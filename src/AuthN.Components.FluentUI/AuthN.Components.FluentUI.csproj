@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+	<PropertyGroup>
+		<Description>Norse.AuthN.Components.FluentUI: Login/Register Razor components, FluentUI Blazor v5, wired against AuthN.Components' IAuthenticationGateway — never IAuthenticationService directly, never Outcome&lt;T&gt;, never a caught exception (spec §9.6/§9.8). Logout.razor lives in the headless AuthN.Components instead — it has no FluentUI markup, only @code.</Description>
+	</PropertyGroup>
+	<ItemGroup>
+		<!-- Blazilla (FluentValidation's EditForm integration) rides in transitively via the
+		     ProjectReference below to AuthN.Components — no direct reference needed here. -->
+		<PackageReference Include="Microsoft.FluentUI.AspNetCore.Components" Version="*-*" />
+	</ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="../AuthN.Components/AuthN.Components.csproj" />
+	</ItemGroup>
+</Project>

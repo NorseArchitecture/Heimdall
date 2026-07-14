@@ -1,0 +1,16 @@
+@page "/auth/logout"
+@rendermode InteractiveAuto
+@inject IAuthenticationGateway AuthenticationGateway
+@inject NavigationManager Navigation
+
+@code {
+	protected override async Task OnInitializedAsync()
+	{
+		var result = await AuthenticationGateway.Logout(new LogoutRequest());
+
+		// Non-null only when this request couldn't complete the sign-out itself (an established Blazor
+		// Server interactive circuit, where the response has already started) -- a forced full-page
+		// navigation to the completion endpoint finishes it on a genuine new request instead.
+		Navigation.NavigateTo(result.DeferredCompletionUrl ?? "/", forceLoad: true);
+	}
+}
