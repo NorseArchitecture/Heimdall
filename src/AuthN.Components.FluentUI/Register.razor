@@ -1,4 +1,4 @@
-@page "/auth/register"
+@page "/Account/Register"
 @rendermode InteractiveAuto
 @inject IAuthenticationGateway AuthenticationGateway
 @inject NavigationManager Navigation
@@ -46,6 +46,6 @@
 			return;
 		}
 
-		Navigation.NavigateTo("/auth/login");
+		Navigation.NavigateTo("/Account/Login");
 	}
 }
