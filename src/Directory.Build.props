@@ -6,6 +6,10 @@
 		<!-- Self-certify AOT/trim at the source so violations fail here, not downstream. -->
 		<IsAotCompatible>true</IsAotCompatible>
 		<MinVerTagPrefix>v</MinVerTagPrefix>
+		<!-- Nothing published to NuGet should carry launch-profile scaffolding — applies platform-wide
+		     to every src/ project, not just the Microsoft.NET.Sdk.Web ones where it actually bites
+		     ({Realm}.Web.Server); a no-op everywhere else. -->
+		<NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
 		<!-- NU5104: a stable-versioned package depending on a prerelease package. Every Norse package
 		     targets net11.0 (still in preview) and is itself pre-1.0 — a stable Norse package will
 		     routinely take a prerelease dependency (e.g. Microsoft.AspNetCore.Components.*) because no
