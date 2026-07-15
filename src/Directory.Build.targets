@@ -1,6 +1,9 @@
 <Project>
 	<PropertyGroup>
 		<OutputType>Library</OutputType>
+		<!-- Sdk.Web defaults IsPackable to false (it assumes a deployable, not a library); every src
+		     project here ships as a NuGet package regardless of which Sdk it uses. -->
+		<IsPackable>true</IsPackable>
 		<_BifrostTargets>
 			$([MSBuild]::GetPathOfFileAbove('Directory.Build.targets', '$(MSBuildThisFileDirectory)../../'))
 		</_BifrostTargets>
