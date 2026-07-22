@@ -10,7 +10,7 @@ The authn story for the Norse Architecture — **`Norse.AuthN`**: login, registe
 
 ## Status
 
-This realm is currently a bare shell — no code, no specs converged yet. Design happens first: brainstorm → spec → plan, recorded in Glitnir's `docs/Heimdall/`, before any project is scaffolded here.
+`AuthN.Components` and `AuthN.Components.FluentUI` are live — the Himinbjörg→Heimdall component migration moved the injection-clean subset (Login, Register, Logout, and their validators/requests) over mechanically; components with real backend injections (`UserManager`/`SignInManager`/`HttpContext`) exist only on Himinbjörg's unmerged `feature/identity-web-server` branch, pending the gRPC wireup slice. Pages still carry the ASP.NET Identity scaffold's `/Account/*` routes deliberately — renaming them is a separate, deferred curation pass. Design for what's next happens first: brainstorm → spec → plan, recorded in Glitnir's `docs/Heimdall/`, before any further project is scaffolded here.
 
 ## The cosmos
 
