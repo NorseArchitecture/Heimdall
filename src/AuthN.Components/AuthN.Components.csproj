@@ -3,27 +3,11 @@
 		<Description>Norse.AuthN.Components: the IAuthenticationService gRPC contract, its request/response records, FluentValidation validators, Blazilla's EditForm integration, and the headless (no FluentUI) Razor components — Logout.razor, the growing Pages/ folder of markup-only status pages (AccessDenied, Lockout, etc.), and Shared/StatusMessage.razor (a pure [Parameter] renderer — no HttpContext, no cookie fallback; that's Himinbjorg's server-side redirect pattern, deliberately left behind), migrated off Himinbjorg's temporary Identity.Web.Server staging ground component by component. Deliberately references only System.ServiceModel.Primitives (attributes) rather than the full protobuf-net.Grpc package, and takes no NorseRef on Asgard's server-only mediator — Outcome&lt;T&gt; never appears on this wire (see the Heimdall spec §9.1/§9.2). This keeps the widely-shared contract library WASM-thin. Any component with FluentUI markup belongs in AuthN.Components.FluentUI instead, never here.</Description>
 	</PropertyGroup>
 	<ItemGroup>
-		<!-- Blazilla and the two ServiceModel/Cryptography.Xml entries below are all behavioral (no
-		     markup) — chained here so a future peer RCL (AuthN.Blazorise, etc.) inherits them
-		     transitively through its own ProjectReference to this project, same as
-		     Microsoft.AspNetCore.Components.Web already does via the Abstractions.Components NorseRef.
-		     FluentValidation itself isn't listed directly — Blazilla depends on it (>=12.1.1), so it
-		     rides in transitively too. -->
-		<PackageReference Include="Blazilla" Version="*" />
-		<PackageReference Include="System.ServiceModel.Primitives" Version="*" />
-		<!-- Floats deliberately, chained with System.ServiceModel.Primitives above: that package's own
-		     transitive floor on this one (10.0.0) carries NU1903 (GHSA-37gx-xxp4-5rgx, GHSA-w3x6-4m5h-cxqf).
-		     A floating direct reference always wins NuGet's nearest-wins resolution with whatever's
-		     current and patched, so this never needs revisiting the way a hard pin would. -->
-		<PackageReference Include="System.Security.Cryptography.Xml" Version="*" />
-	</ItemGroup>
-	<ItemGroup>
-		<!-- Headless component composition point: future shared primitives (loading states, dashboard
-		     widgets, etc.) land in Asgard's Abstractions.Components, not reinvented here. Referenced from
-		     this project only — AuthN.Components.FluentUI inherits it transitively via its own
-		     ProjectReference to this project, so it never needs its own NorseRef to Asgard. -->
 		<NorseRef Include="Abstractions.Components">
 			<Repo>Asgard</Repo>
 		</NorseRef>
+		<PackageReference Include="Blazilla" Version="2.*" />
+		<PackageReference Include="System.ServiceModel.Primitives" Version="10.*" />
+		<PackageReference Include="System.Security.Cryptography.Xml" Version="11.*-*" />
 	</ItemGroup>
 </Project>

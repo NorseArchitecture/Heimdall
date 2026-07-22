@@ -1,9 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk.Razor">
 	<ItemGroup>
+		<!-- Fix for: https://github.com/bUnit-dev/bUnit/issues/1872 -->
+		<PackageReference Include="AngleSharp" Version="*" />
 		<PackageReference Include="bunit" Version="*" />
-		<PackageReference Include="NSubstitute" Version="*" />
-	</ItemGroup>
-	<ItemGroup>
 		<ProjectReference Include="../../src/AuthN.Components/AuthN.Components.csproj" />
 	</ItemGroup>
 </Project>

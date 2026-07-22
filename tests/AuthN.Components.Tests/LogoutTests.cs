@@ -1,7 +1,6 @@
 using Bunit;
 using Bunit.TestDoubles;
 using Microsoft.Extensions.DependencyInjection;
-using NSubstitute;
 
 namespace Norse.AuthN.Components.Tests;
 
