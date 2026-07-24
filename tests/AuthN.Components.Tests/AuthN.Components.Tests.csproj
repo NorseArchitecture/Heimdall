@@ -4,5 +4,6 @@
 		<PackageReference Include="AngleSharp" Version="*" />
 		<PackageReference Include="bunit" Version="*" />
 		<ProjectReference Include="../../src/AuthN.Components/AuthN.Components.csproj" />
+		<ProjectReference Include="../../src/AuthN.Components.FluentUI/AuthN.Components.FluentUI.csproj" />
 	</ItemGroup>
 </Project>
