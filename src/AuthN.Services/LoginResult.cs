@@ -13,4 +13,12 @@ public sealed record LoginResult
 	/// <summary>Whether the login attempt succeeded.</summary>
 	[DataMember(Order = 1)]
 	public required bool Succeeded { get; init; }
+
+	/// <summary>
+	/// Non-null only on the Blazor-Server in-process path, when the sign-in had to be deferred to a
+	/// forced-reload completion request (spec: circuits can't Set-Cookie once the response has
+	/// started). Always null for real gRPC/WASM calls — that path never stashes a deferred sign-in.
+	/// </summary>
+	[DataMember(Order = 2)]
+	public string? DeferredCompletionUrl { get; init; }
 }
