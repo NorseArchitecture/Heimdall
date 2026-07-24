@@ -27,5 +27,5 @@ public interface IAuthenticationService
 	/// <summary>Logs out the currently authenticated user.</summary>
 	[Authorize(Policy = AuthNPolicies.Public)]
 	[OperationContract]
-	Task Logout(LogoutRequest request);
+	Task<LogoutResult> Logout(LogoutRequest request);
 }
