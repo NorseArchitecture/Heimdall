@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<Description>Norse.AuthN.Services: the IAuthenticationService gRPC contract and its wire request/response records (LoginRequest, RegisterRequest, LogoutRequest, LoginResult) — no Razor, no FluentValidation, no Blazilla. A consumer who wants the gRPC declarations without AuthN.Components' Razor components references only this assembly, wraps its own UI around IAuthenticationService, and wires it to whatever backend it sees fit.</Description>
+		<NorseGatewayEmissionMode>Contract</NorseGatewayEmissionMode>
 		<!-- CS1591: Generated code from the gateway generator doesn't need documentation comments. -->
 		<NoWarn>$(NoWarn);CS1591</NoWarn>
 	</PropertyGroup>
@@ -12,8 +13,6 @@
 		<NorseRef Include="Abstractions.Contracts" Generator="true">
 			<Repo>Asgard</Repo>
 		</NorseRef>
+		<SupportedPlatform Include="browser" />
 	</ItemGroup>
-	<PropertyGroup>
-		<NorseGatewayEmissionMode>Contract</NorseGatewayEmissionMode>
-	</PropertyGroup>
 </Project>
