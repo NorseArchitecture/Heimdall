@@ -1,6 +1,6 @@
 using System.Runtime.Serialization;
 
-namespace Norse.AuthN.Components;
+namespace Norse.AuthN.Services;
 
 /// <summary>
 /// The wire response for <see cref="IAuthenticationService.Login"/>. <c>Succeeded=false</c> is a

@@ -1,6 +1,6 @@
 using System.Runtime.Serialization;
 
-namespace Norse.AuthN.Components;
+namespace Norse.AuthN.Services;
 
 /// <summary>
 /// Deliberately empty — the caller's authenticated cookie identifies who's logging out. A wire type

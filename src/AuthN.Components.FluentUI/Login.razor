@@ -17,10 +17,11 @@
 
 @code {
 	readonly LoginRequest _request = new() { Email = "", Password = "" };
-	EditContext _editContext = default!;
-	ValidationMessageStore _messageStore = default!;
+	EditContext _editContext = null!;
+	ValidationMessageStore _messageStore = null!;
 
-	protected override void OnInitialized()
+    /// <inheritdoc />
+    protected override void OnInitialized()
 	{
 		_editContext = new EditContext(_request);
 		_messageStore = new ValidationMessageStore(_editContext);

@@ -1,3 +1,5 @@
+using Norse.AuthN.Services;
+
 namespace Norse.AuthN.Components;
 
 /// <summary>

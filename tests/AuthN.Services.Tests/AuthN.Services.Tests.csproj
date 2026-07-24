@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+	<ItemGroup>
+		<ProjectReference Include="../../src/AuthN.Services/AuthN.Services.csproj" />
+	</ItemGroup>
+</Project>

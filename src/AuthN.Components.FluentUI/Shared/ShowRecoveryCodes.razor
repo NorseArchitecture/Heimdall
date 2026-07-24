@@ -18,9 +18,11 @@
 </FluentGrid>
 
 @code {
+	/// <summary>The two-factor recovery codes to display, one per line.</summary>
 	[Parameter]
 	public string[] RecoveryCodes { get; set; } = [];
 
+	/// <summary>An optional status message shown above the recovery codes.</summary>
 	[Parameter]
 	public string? StatusMessage { get; set; }
 }

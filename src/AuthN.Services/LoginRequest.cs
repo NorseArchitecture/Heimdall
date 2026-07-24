@@ -1,6 +1,6 @@
 using System.Runtime.Serialization;
 
-namespace Norse.AuthN.Components;
+namespace Norse.AuthN.Services;
 
 /// <summary>
 /// Deliberately mutable (not <c>init</c>) — this is the direct two-way <c>EditForm</c> binding target

@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<Description>Norse.AuthN.Services: the IAuthenticationService gRPC contract and its wire request/response records (LoginRequest, RegisterRequest, LogoutRequest, LoginResult) — no Razor, no FluentValidation, no Blazilla. A consumer who wants the gRPC declarations without AuthN.Components' Razor components references only this assembly, wraps its own UI around IAuthenticationService, and wires it to whatever backend it sees fit.</Description>
+	</PropertyGroup>
+	<ItemGroup>
+		<PackageReference Include="System.ServiceModel.Primitives" Version="10.*" />
+		<!-- Overrides a known-vulnerable transitive version pulled in by System.ServiceModel.Primitives. -->
+		<PackageReference Include="System.Security.Cryptography.Xml" Version="11.*-*" />
+	</ItemGroup>
+</Project>

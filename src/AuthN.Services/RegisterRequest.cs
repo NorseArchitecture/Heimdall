@@ -1,6 +1,6 @@
 using System.Runtime.Serialization;
 
-namespace Norse.AuthN.Components;
+namespace Norse.AuthN.Services;
 
 /// <summary>Deliberately mutable — see <see cref="LoginRequest"/>'s remark.</summary>
 [DataContract]

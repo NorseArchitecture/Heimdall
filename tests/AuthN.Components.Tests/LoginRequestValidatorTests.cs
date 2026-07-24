@@ -1,3 +1,5 @@
+using Norse.AuthN.Services;
+
 namespace Norse.AuthN.Components.Tests;
 
 public sealed class LoginRequestValidatorTests
@@ -7,7 +9,7 @@ public sealed class LoginRequestValidatorTests
 	[Fact]
 	void Rejects_empty_email()
 	{
-		var request = new LoginRequest { Email = "", Password = "correct-horse" };
+		LoginRequest request = new() { Email = "", Password = "correct-horse" };
 
 		var result = _validator.Validate(request);
 
@@ -17,7 +19,7 @@ public sealed class LoginRequestValidatorTests
 	[Fact]
 	void Rejects_malformed_email()
 	{
-		var request = new LoginRequest { Email = "not-an-email", Password = "correct-horse" };
+		LoginRequest request = new() { Email = "not-an-email", Password = "correct-horse" };
 
 		var result = _validator.Validate(request);
 
@@ -27,7 +29,7 @@ public sealed class LoginRequestValidatorTests
 	[Fact]
 	void Rejects_empty_password()
 	{
-		var request = new LoginRequest { Email = "user@example.com", Password = "" };
+		LoginRequest request = new() { Email = "user@example.com", Password = "" };
 
 		var result = _validator.Validate(request);
 
@@ -37,7 +39,7 @@ public sealed class LoginRequestValidatorTests
 	[Fact]
 	void Accepts_a_well_formed_request()
 	{
-		var request = new LoginRequest { Email = "user@example.com", Password = "correct-horse" };
+		LoginRequest request = new() { Email = "user@example.com", Password = "correct-horse" };
 
 		var result = _validator.Validate(request);
 
