@@ -3,6 +3,8 @@
 		<!-- Fix for: https://github.com/bUnit-dev/bUnit/issues/1872 -->
 		<PackageReference Include="AngleSharp" Version="*" />
 		<PackageReference Include="bunit" Version="*" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="11.*-*" />
 		<ProjectReference Include="../../src/AuthN.Components/AuthN.Components.csproj" />
+		<ProjectReference Include="../../src/AuthN.Components.FluentUI/AuthN.Components.FluentUI.csproj" />
 	</ItemGroup>
 </Project>
