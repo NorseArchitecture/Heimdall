@@ -1,6 +1,6 @@
 using System.ServiceModel;
 
-namespace Norse.AuthN.Components;
+namespace Norse.AuthN.Services;
 
 /// <summary>
 /// Issuance surface — real, network-callable gRPC methods that mint or clear the authenticated
@@ -8,7 +8,7 @@ namespace Norse.AuthN.Components;
 /// off the full protobuf-net.Grpc package. Where the implementation needs a cancellation token or
 /// <c>HttpContext</c>, it comes from a directly-injected <c>IHttpContextAccessor</c> instead.
 /// </summary>
-[ServiceContract]
+[ServiceContract(Name = "grpc.authentication.v1.AuthenticationService")]
 public interface IAuthenticationService
 {
 	/// <summary>Authenticates a user with the provided credentials.</summary>

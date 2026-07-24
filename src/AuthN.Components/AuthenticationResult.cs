@@ -1,4 +1,5 @@
 using System.Runtime.Serialization;
+using Norse.AuthN.Services;
 
 namespace Norse.AuthN.Components;
 

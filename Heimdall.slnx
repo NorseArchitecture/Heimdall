@@ -15,10 +15,12 @@
 		<File Path="src/Directory.Build.targets" />
 		<Project Path="src/AuthN.Components/AuthN.Components.csproj" />
 		<Project Path="src/AuthN.Components.FluentUI/AuthN.Components.FluentUI.csproj" />
+		<Project Path="src/AuthN.Services/AuthN.Services.csproj" />
 	</Folder>
 	<Folder Name="/tests/">
 		<File Path="tests/Directory.Build.props" />
 		<File Path="tests/Directory.Build.targets" />
 		<Project Path="tests/AuthN.Components.Tests/AuthN.Components.Tests.csproj" />
+		<Project Path="tests/AuthN.Services.Tests/AuthN.Services.Tests.csproj" />
 	</Folder>
 </Solution>
