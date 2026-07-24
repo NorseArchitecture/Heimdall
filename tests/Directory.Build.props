@@ -4,7 +4,12 @@
 		<IsPackable>false</IsPackable>
 		<IsPublishable>false</IsPublishable>
 		<IsTestProject>true</IsTestProject>
-		<NoWarn>$(NoWarn);CA1707;CA1812;CA1859;CS1591;IDE0051</NoWarn>
+		<!-- CA2007 (ConfigureAwait) is at war with xUnit1030 in test code: CA2007 wants every await
+		     ConfigureAwait(false)'d, xUnit1030 forbids exactly that inside a [Fact] method (no
+		     SynchronizationContext to avoid there, and it can bypass xUnit's own parallelization
+		     limits). xUnit1030 is the authoritative rule for test code; CA2007 is meant for
+		     library/production code where the awaiting context genuinely matters. -->
+		<NoWarn>$(NoWarn);CA1707;CA1812;CA1859;CA2007;CS1591;IDE0051</NoWarn>
 		<UseMicrosoftTestingPlatformRunner>true</UseMicrosoftTestingPlatformRunner>
 	</PropertyGroup>
 	<ItemGroup>
