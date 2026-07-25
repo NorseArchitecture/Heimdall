@@ -20,8 +20,7 @@
 	EditContext _editContext = null!;
 	ValidationMessageStore _messageStore = null!;
 
-    /// <inheritdoc />
-    protected override void OnInitialized()
+	protected override void OnInitialized()
 	{
 		_editContext = new EditContext(_request);
 		_messageStore = new ValidationMessageStore(_editContext);
@@ -30,32 +29,34 @@
 	async Task HandleLoginAsync()
 	{
 		_messageStore.Clear();
-		var result = await AuthenticationGateway.Login(_request);
+		var outcome = await AuthenticationGateway.Login(_request, CancellationToken.None);
 
-		if (!result.Succeeded)
+		switch (outcome)
 		{
-			// Succeeded=false with an EMPTY Errors dictionary is the deliberate anti-enumeration
-			// collapse (spec §9.3) — wrong username and wrong password both land here with nothing
-			// more specific the server is willing to say. Synthesize one generic message for that
-			// case; LockedOut/NotAllowed/Validation always arrive with Errors already populated.
-			var errors = result.Errors.Count > 0
-				? result.Errors
-				: new Dictionary<string, string[]> { [""] = ["Invalid email or password."] };
-
-			foreach (var (field, messages) in errors)
-			{
-				var identifier = new FieldIdentifier(_request, field);
-				foreach (var message in messages)
-					_messageStore.Add(identifier, message);
-			}
-
-			_editContext.NotifyValidationStateChanged();
-			return;
+			case Success<LoginResult>(var loginResult) when !loginResult.Succeeded:
+				// Outcome succeeded (the call itself worked); LoginResult.Succeeded=false is the
+				// deliberate anti-enumeration collapse — wrong username and wrong password both land
+				// here with nothing more specific the server is willing to say.
+				ApplyErrors(new Dictionary<string, string[]> { [""] = ["Invalid email or password."] });
+				break;
+			case Success<LoginResult>(var loginResult):
+				Navigation.NavigateTo(loginResult.DeferredCompletionUrl ?? "/", forceLoad: true);
+				break;
+			case Failed(var problem):
+				// A real failure category (LockedOut, Forbidden, ...) — Problem.Errors already carries the message.
+				ApplyErrors(problem.Errors);
+				break;
 		}
+	}
 
-		// Non-null only when this request couldn't complete the sign-in itself (an established Blazor
-		// Server interactive circuit, where the response has already started) -- a forced full-page
-		// navigation to the completion endpoint finishes it on a genuine new request instead.
-		Navigation.NavigateTo(result.DeferredCompletionUrl ?? "/", forceLoad: true);
+	void ApplyErrors(IReadOnlyDictionary<string, string[]> errors)
+	{
+		foreach (var (field, messages) in errors)
+		{
+			var identifier = new FieldIdentifier(_request, field);
+			foreach (var message in messages)
+				_messageStore.Add(identifier, message);
+		}
+		_editContext.NotifyValidationStateChanged();
 	}
 }

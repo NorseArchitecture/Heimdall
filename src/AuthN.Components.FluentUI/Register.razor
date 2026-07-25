@@ -19,8 +19,8 @@
 	EditContext _editContext = null!;
 	ValidationMessageStore _messageStore = null!;
 
-    /// <inheritdoc />
-    protected override void OnInitialized()
+	/// <inheritdoc />
+	protected override void OnInitialized()
 	{
 		_editContext = new EditContext(_request);
 		_messageStore = new ValidationMessageStore(_editContext);
@@ -29,13 +29,13 @@
 	async Task HandleRegisterAsync()
 	{
 		_messageStore.Clear();
-		var result = await AuthenticationGateway.Register(_request);
+		var outcome = await AuthenticationGateway.Register(_request, CancellationToken.None);
 
-		if (!result.Succeeded)
+		if (outcome.TryGetValue(out Failed failed))
 		{
 			// Register never produces an empty Errors dictionary on failure — Conflict/Validation are
 			// always populated (spec §9.3), unlike Login's anti-enumeration collapse. No fallback needed.
-			foreach (var (field, messages) in result.Errors)
+			foreach (var (field, messages) in failed.Problem.Errors)
 			{
 				var identifier = new FieldIdentifier(_request, field);
 				foreach (var message in messages)

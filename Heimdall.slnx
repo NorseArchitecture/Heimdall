@@ -21,6 +21,7 @@
 		<File Path="tests/Directory.Build.props" />
 		<File Path="tests/Directory.Build.targets" />
 		<Project Path="tests/AuthN.Components.Tests/AuthN.Components.Tests.csproj" />
+		<Project Path="tests/AuthN.Components.FluentUI.Tests/AuthN.Components.FluentUI.Tests.csproj" />
 		<Project Path="tests/AuthN.Services.Tests/AuthN.Services.Tests.csproj" />
 	</Folder>
 </Solution>
