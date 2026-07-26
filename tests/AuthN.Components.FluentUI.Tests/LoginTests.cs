@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using Bunit;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.FluentUI.AspNetCore.Components;
@@ -19,7 +18,6 @@ public sealed class LoginTests : BunitContext
 	}
 
 	[Fact]
-	[SuppressMessage("Usage", "CA2012:Use ValueTasks correctly")]
 	void WrongCredentials_CollapsedFailure_ShowsGenericMessage()
 	{
 		var gateway = Substitute.For<IAuthenticationGateway>();
@@ -35,7 +33,6 @@ public sealed class LoginTests : BunitContext
 	}
 
 	[Fact]
-	[SuppressMessage("Usage", "CA2012:Use ValueTasks correctly")]
 	void LockedOut_RealFailure_ShowsDistinguishableMessage()
 	{
 		var gateway = Substitute.For<IAuthenticationGateway>();

@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using Bunit;
 using Bunit.TestDoubles;
 using Microsoft.Extensions.DependencyInjection;
@@ -10,7 +9,6 @@ namespace Norse.AuthN.Components.Tests;
 public sealed class LogoutTests : BunitContext
 {
 	[Fact]
-	[SuppressMessage("Usage", "CA2012:Use ValueTasks correctly")]
 	void Navigates_to_root_when_the_gateway_completes_sign_out_directly()
 	{
 		var gateway = Substitute.For<IAuthenticationGateway>();
@@ -26,7 +24,6 @@ public sealed class LogoutTests : BunitContext
 	}
 
 	[Fact]
-	[SuppressMessage("Usage", "CA2012:Use ValueTasks correctly")]
 	void Navigates_to_the_deferred_completion_url_when_the_gateway_could_not_sign_out_directly()
 	{
 		var gateway = Substitute.For<IAuthenticationGateway>();
