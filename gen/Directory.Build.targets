@@ -1,0 +1,11 @@
+<Project>
+	<PropertyGroup>
+		<_BifrostTargets>
+			$([MSBuild]::GetPathOfFileAbove('Directory.Build.targets', '$(MSBuildThisFileDirectory)../../'))
+		</_BifrostTargets>
+	</PropertyGroup>
+	<Import Project="$(_BifrostTargets)" Condition="Exists('$(_BifrostTargets)')" />
+	<ItemGroup Condition="!Exists('$(_BifrostTargets)')">
+		<PackageReference Include="@(NorseRef->'Norse.%(Identity)')" Version="*" />
+	</ItemGroup>
+</Project>
