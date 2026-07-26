@@ -25,7 +25,7 @@ public sealed class LoginTests : BunitContext
 		var gateway = Substitute.For<IAuthenticationGateway>();
 		gateway.Login(Arg.Any<LoginRequest>(), Arg.Any<CancellationToken>())
 			.Returns(_ => ValueTask.FromResult(Outcome<LoginResult>.Ok(new LoginResult { Succeeded = false })));
-		Services.AddSingleton<IAuthenticationGateway>(gateway);
+		Services.AddSingleton(gateway);
 
 		var component = Render<Login>();
 		FillCredentials(component);
@@ -42,7 +42,7 @@ public sealed class LoginTests : BunitContext
 		gateway.Login(Arg.Any<LoginRequest>(), Arg.Any<CancellationToken>())
 			.Returns(_ => ValueTask.FromResult(Outcome<LoginResult>.Err(ErrorCategory.LockedOut,
 				new Dictionary<string, string[]> { [""] = ["Your account is locked. Try again in 15 minutes."] })));
-		Services.AddSingleton<IAuthenticationGateway>(gateway);
+		Services.AddSingleton(gateway);
 
 		var component = Render<Login>();
 		FillCredentials(component);

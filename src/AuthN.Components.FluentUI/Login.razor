@@ -1,4 +1,5 @@
 @page "/Account/Login"
+@inherits AsyncComponentBase
 @inject IAuthenticationGateway AuthenticationGateway
 @inject NavigationManager Navigation
 
@@ -7,56 +8,59 @@
 <h1>Log in</h1>
 
 <EditForm EditContext="_editContext" OnValidSubmit="HandleLoginAsync" FormName="authn-login">
-	<FluentValidator />
-	<ValidationSummary />
-	<FluentTextInput @bind-Value="_request.Email" Label="Email" Required="true" />
-	<FluentTextInput @bind-Value="_request.Password" TextInputType="TextInputType.Password" Label="Password" Required="true" />
-	<FluentCheckbox @bind-Value="_request.RememberMe" Label="Remember me" />
-	<FluentButton Type="ButtonType.Submit" Appearance="ButtonAppearance.Primary">Log in</FluentButton>
+    <FluentValidator />
+    <ValidationSummary />
+    <FluentTextInput @bind-Value="_request.Email" Label="Email" Required="true" />
+    <FluentTextInput @bind-Value="_request.Password" TextInputType="TextInputType.Password" Label="Password" Required="true" />
+    <FluentCheckbox @bind-Value="_request.RememberMe" Label="Remember me" />
+    <FluentButton Type="ButtonType.Submit" Appearance="ButtonAppearance.Primary">Log in</FluentButton>
 </EditForm>
 
 @code {
-	readonly LoginRequest _request = new() { Email = "", Password = "" };
-	EditContext _editContext = null!;
-	ValidationMessageStore _messageStore = null!;
+    readonly LoginRequest _request = new() { Email = "", Password = "" };
+    EditContext _editContext = null!;
+    ValidationMessageStore _messageStore = null!;
 
-	protected override void OnInitialized()
-	{
-		_editContext = new EditContext(_request);
-		_messageStore = new ValidationMessageStore(_editContext);
-	}
+    /// <inheritdoc />
+    protected override void OnInitialized()
+    {
+        _editContext = new(_request);
+        _messageStore = new(_editContext);
+    }
 
-	async Task HandleLoginAsync()
-	{
-		_messageStore.Clear();
-		var outcome = await AuthenticationGateway.Login(_request, CancellationToken.None);
+    async Task HandleLoginAsync()
+    {
+        _messageStore.Clear();
+        var outcome = await AuthenticationGateway.Login(_request, CancellationToken);
 
-		switch (outcome)
-		{
-			case Success<LoginResult>(var loginResult) when !loginResult.Succeeded:
-				// Outcome succeeded (the call itself worked); LoginResult.Succeeded=false is the
-				// deliberate anti-enumeration collapse — wrong username and wrong password both land
-				// here with nothing more specific the server is willing to say.
-				ApplyErrors(new Dictionary<string, string[]> { [""] = ["Invalid email or password."] });
-				break;
-			case Success<LoginResult>(var loginResult):
-				Navigation.NavigateTo(loginResult.DeferredCompletionUrl ?? "/", forceLoad: true);
-				break;
-			case Failed(var problem):
-				// A real failure category (LockedOut, Forbidden, ...) — Problem.Errors already carries the message.
-				ApplyErrors(problem.Errors);
-				break;
-		}
-	}
+        switch (outcome)
+        {
+            case Success<LoginResult>({ Succeeded: false }):
+                // Outcome succeeded (the call itself worked); LoginResult.Succeeded=false is the
+                // deliberate anti-enumeration collapse — wrong username and wrong password both land
+                // here with nothing more specific the server is willing to say.
+                ApplyErrors(new Dictionary<string, string[]> { [""] = ["Invalid email or password."] });
+                break;
+            case Success<LoginResult>(var loginResult):
+                Navigation.NavigateTo(loginResult.DeferredCompletionUrl ?? "/", forceLoad: true);
+                break;
+            case Failed(var problem):
+                // A real failure category (LockedOut, Forbidden, ...) — Problem.Errors already carries the message.
+                ApplyErrors(problem.Errors);
+                break;
+        }
+    }
 
-	void ApplyErrors(IReadOnlyDictionary<string, string[]> errors)
-	{
-		foreach (var (field, messages) in errors)
-		{
-			var identifier = new FieldIdentifier(_request, field);
-			foreach (var message in messages)
-				_messageStore.Add(identifier, message);
-		}
-		_editContext.NotifyValidationStateChanged();
-	}
+    void ApplyErrors(IReadOnlyDictionary<string, string[]> errors)
+    {
+        foreach (var (field, messages) in errors)
+        {
+            FieldIdentifier identifier = new(_request, field);
+            foreach (var message in messages)
+                _messageStore.Add(identifier, message);
+        }
+
+        _editContext.NotifyValidationStateChanged();
+    }
+
 }
