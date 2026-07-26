@@ -11,6 +11,11 @@
 		<!-- Never packed on its own — bundled into the analyzers/dotnet/cs/ folder of the host
 		     package that consumes it (see each host project's IncludeGeneratorInPackage target). -->
 		<IsPackable>false</IsPackable>
+		<!-- CS1591 (missing XML comment for publicly visible type or member): GenerateDocumentationFile
+		     inherits all the way from config/Directory.Build.props into gen/ too. This project's public
+		     surface — the [Generator]-attributed IIncrementalGenerator, its DiagnosticDescriptors — is
+		     public only because the Roslyn generator-loading contract requires it, not because it's a
+		     documented consumer-facing API; nothing outside the compiler process resolves it. -->
 		<NoWarn>$(NoWarn);CS1591</NoWarn>
 		<!-- A ProjectReference always copies its output locally regardless of project type, but a
 		     PackageReference does not — CopyLocalLockFileAssemblies defaults to false for a non-exe
