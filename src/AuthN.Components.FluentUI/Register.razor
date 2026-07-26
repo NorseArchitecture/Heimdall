@@ -29,7 +29,7 @@
 	async Task HandleRegisterAsync()
 	{
 		_messageStore.Clear();
-		var outcome = await AuthenticationGateway.Register(_request, CancellationToken.None);
+		var outcome = await AuthenticationGateway.Register(_request);
 
 		if (outcome.TryGetValue(out Failed failed))
 		{
