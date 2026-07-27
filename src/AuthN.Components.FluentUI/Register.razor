@@ -37,7 +37,7 @@
 			// always populated (spec §9.3), unlike Login's anti-enumeration collapse. No fallback needed.
 			foreach (var (field, messages) in failed.Problem.Errors)
 			{
-				var identifier = new FieldIdentifier(_request, field);
+				FieldIdentifier identifier = new(_request, field);
 				foreach (var message in messages)
 					_messageStore.Add(identifier, message);
 			}
