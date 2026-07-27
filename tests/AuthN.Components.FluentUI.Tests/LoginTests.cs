@@ -20,10 +20,10 @@ public sealed class LoginTests : BunitContext
 	[Fact]
 	void WrongCredentials_CollapsedFailure_ShowsGenericMessage()
 	{
-		var gateway = Substitute.For<IAuthenticationGateway>();
-		gateway.Login(Arg.Any<LoginRequest>(), Arg.Any<CancellationToken>())
-			.Returns(_ => ValueTask.FromResult(Outcome<LoginResult>.Ok(new LoginResult { Succeeded = false })));
-		Services.AddSingleton(gateway);
+		var service = Substitute.For<IAuthenticationService>();
+		service.Login(Arg.Any<LoginRequest>(), Arg.Any<CancellationToken>())
+			.Returns(_ => Task.FromResult(Outcome<LoginResult>.Ok(new LoginResult { Succeeded = false })));
+		Services.AddSingleton(service);
 
 		var component = Render<Login>();
 		FillCredentials(component);
@@ -35,11 +35,11 @@ public sealed class LoginTests : BunitContext
 	[Fact]
 	void LockedOut_RealFailure_ShowsDistinguishableMessage()
 	{
-		var gateway = Substitute.For<IAuthenticationGateway>();
-		gateway.Login(Arg.Any<LoginRequest>(), Arg.Any<CancellationToken>())
-			.Returns(_ => ValueTask.FromResult(Outcome<LoginResult>.Err(ErrorCategory.LockedOut,
+		var service = Substitute.For<IAuthenticationService>();
+		service.Login(Arg.Any<LoginRequest>(), Arg.Any<CancellationToken>())
+			.Returns(_ => Task.FromResult(Outcome<LoginResult>.Err(ErrorCategory.LockedOut,
 				new Dictionary<string, string[]> { [""] = ["Your account is locked. Try again in 15 minutes."] })));
-		Services.AddSingleton(gateway);
+		Services.AddSingleton(service);
 
 		var component = Render<Login>();
 		FillCredentials(component);
