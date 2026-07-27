@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Authorization;
-using Norse.Abstractions.Contracts;
 using System.Reflection;
 
 namespace Norse.AuthN.Services.Tests;
@@ -12,12 +11,17 @@ namespace Norse.AuthN.Services.Tests;
 public sealed class RequestContractTests
 {
 	[Fact]
-	void Wire_records_carry_no_mediator_marker()
+	void AuthN_Services_does_not_reference_the_mediator_law_assembly()
 	{
-		foreach (var wireType in (Type[])[typeof(LoginRequest), typeof(RegisterRequest), typeof(LoginResult), typeof(RegisterResult), typeof(LogoutResult)])
-			wireType.GetInterfaces()
-				.Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IRequest<>))
-				.ShouldBeFalse($"{wireType.Name} must not implement any closed IRequest<> — mediator identity is Himinbjörg's, never the wire's.");
+		// The mediator marker family (IRequest<T>/ICommandRequest<T>/IQueryRequest<T>) moved into
+		// Norse.Abstractions.Web.Server (server-only law, 2026-07-27 amendment) precisely so a wire
+		// assembly could no longer even name them, let alone implement them. Asserting a wire type
+		// "doesn't implement IRequest<>" is no longer expressible from here — this assembly cannot
+		// reference the type at all — so the stronger, structural check is that the assembly
+		// reference itself is absent. That absence is the actual enforcement mechanism.
+		typeof(IAuthenticationService).Assembly.GetReferencedAssemblies()
+			.Any(a => a.Name == "Norse.Abstractions.Web.Server")
+			.ShouldBeFalse("Norse.AuthN.Services must not reference Norse.Abstractions.Web.Server — mediator law is structurally invisible to the wire assembly, not merely unused by convention.");
 	}
 
 	[Fact]
