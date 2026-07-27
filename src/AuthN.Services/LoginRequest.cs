@@ -1,19 +1,17 @@
 using System.Runtime.Serialization;
-using Microsoft.AspNetCore.Authorization;
-using Norse.Abstractions.Contracts;
 
 namespace Norse.AuthN.Services;
 
 /// <summary>
 /// Deliberately mutable (not <c>init</c>) — this is the direct two-way <c>EditForm</c> binding target
 /// for <c>AuthN.Components.FluentUI</c>'s <c>Login.razor</c>; every other record in this contract stays
-/// <c>init</c>-only. Wire DTO marked as a command request — the marker couples it to
-/// <c>Abstractions.Contracts</c> (WASM-safe, already referenced for <see cref="Outcome{T}"/>); the objection
-/// raised 2026-07-24 was to server-only assemblies, which remain untouched.
+/// <c>init</c>-only. A pure wire DTO — no mediator marker, no <c>[Authorize]</c>. Himinbjörg's
+/// server-sovereign <c>LoginCommand</c> wraps this instance to give it mediator identity; the wire
+/// shape itself stays free of anything that would drag <c>Abstractions.Web.Server</c> into WASM's
+/// footprint.
 /// </summary>
 [DataContract]
-[Authorize(Policy = AuthNPolicies.Public)]
-public sealed record LoginRequest : ICommandRequest<BoolResponse>
+public sealed record LoginRequest
 {
 	/// <summary>The user's email address.</summary>
 	[DataMember(Order = 1)]

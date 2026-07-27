@@ -1,13 +1,10 @@
 using System.Runtime.Serialization;
-using Microsoft.AspNetCore.Authorization;
-using Norse.Abstractions.Contracts;
 
 namespace Norse.AuthN.Services;
 
-/// <summary>Deliberately mutable — see <see cref="LoginRequest"/>'s remark.</summary>
+/// <summary>Deliberately mutable — see <see cref="LoginRequest"/>'s remark. A pure wire DTO, same as <see cref="LoginRequest"/>.</summary>
 [DataContract]
-[Authorize(Policy = AuthNPolicies.Public)]
-public sealed record RegisterRequest : ICommandRequest<BoolResponse>
+public sealed record RegisterRequest
 {
 	/// <summary>The email address for the new account.</summary>
 	[DataMember(Order = 1)]

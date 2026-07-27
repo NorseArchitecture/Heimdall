@@ -7,7 +7,7 @@
 	/// <inheritdoc />
 	protected override async Task OnInitializedAsync()
 	{
-		var outcome = await AuthenticationService.Logout(new LogoutRequest(), CancellationToken);
+		var outcome = await AuthenticationService.Logout(CancellationToken);
 
 		// Non-null only when this request couldn't complete the sign-out itself (an established Blazor
 		// Server interactive circuit, where the response has already started) — a forced full-page
