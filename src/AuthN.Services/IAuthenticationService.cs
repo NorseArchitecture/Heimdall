@@ -5,12 +5,17 @@ namespace Norse.AuthN.Services;
 
 /// <summary>
 /// Issuance surface — real, network-callable gRPC methods that mint or clear the authenticated
-/// cookie. The <c>CancellationToken</c> parameter rides the contract so components can cancel
-/// operations without a gateway wrapper. Authorization policy <see cref="AuthNPolicies.Public"/> is
-/// declared on the request records <see cref="LoginRequest"/>, <see cref="RegisterRequest"/>, and
-/// <see cref="LogoutRequest"/> (read by the mediator's <c>AuthorizationBehavior</c>) and mirrored on
-/// the concrete <c>AuthenticationService</c> class for gRPC endpoint metadata — the interface itself
-/// declares no policy.
+/// cookie. The <c>CancellationToken</c> parameter rides every method so components can cancel
+/// operations without a gateway wrapper.
+///
+/// Every request/response type here is a pure <c>[DataContract]</c> wire shape — no mediator
+/// marker, no <c>[Authorize]</c>. Authorization policy (<see cref="AuthNPolicies.Public"/>) and
+/// mediator identity live entirely server-side, on Himinbjörg's <c>LoginCommand</c>/
+/// <c>RegisterCommand</c>/<c>LogoutCommand</c> wrappers — this assembly never references
+/// <c>Abstractions.Web.Server</c>, keeping the WASM footprint lean. The concrete
+/// <c>AuthenticationService</c> implementation mirrors <see cref="AuthNPolicies.Public"/> on its own
+/// methods purely for gRPC endpoint metadata; that mirror is the only place the policy name touches
+/// the wire tier at all.
 ///
 /// Every method returns <see cref="Outcome{T}"/> directly (spec §9, 2026-07-24 amendment to decided
 /// law item 3) — the envelope <em>is</em> the wire method signature. Nothing in-process throws to
@@ -27,9 +32,15 @@ public interface IAuthenticationService
 
 	/// <summary>Registers a new user account with the provided credentials.</summary>
 	[OperationContract]
-	Task<Outcome<Unit>> Register(RegisterRequest request, CancellationToken cancellationToken = default);
+	Task<Outcome<RegisterResult>> Register(RegisterRequest request, CancellationToken cancellationToken = default);
 
-	/// <summary>Logs out the currently authenticated user.</summary>
+	/// <summary>
+	/// Logs out the currently authenticated user. No request DTO — the caller's authenticated cookie
+	/// identifies who's logging out, and protobuf-net.Grpc supports a <see cref="CancellationToken"/>-only
+	/// operation contract end to end (spike-verified: real <c>TestServer</c>, real HTTP/2, real
+	/// <c>CreateGrpcService&lt;T&gt;</c> client proxy) — an empty request record would have carried no
+	/// information at all.
+	/// </summary>
 	[OperationContract]
-	Task<Outcome<LogoutResult>> Logout(LogoutRequest request, CancellationToken cancellationToken = default);
+	Task<Outcome<LogoutResult>> Logout(CancellationToken cancellationToken = default);
 }

@@ -1,9 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
-		<Description>Norse.AuthN.Services: the IAuthenticationService gRPC contract and its wire request/response records (LoginRequest, RegisterRequest, LogoutRequest, LoginResult) — no Razor, no FluentValidation, no Blazilla. A consumer who wants the gRPC declarations without AuthN.Components' Razor components references only this assembly, wraps its own UI around IAuthenticationService, and wires it to whatever backend it sees fit.</Description>
+		<Description>Norse.AuthN.Services: the IAuthenticationService gRPC contract and its wire request/response records (LoginRequest, RegisterRequest, LoginResult, RegisterResult, LogoutResult) — no mediator marker, no [Authorize], no Razor, no FluentValidation, no Blazilla. Logout is a CancellationToken-only operation; there is no LogoutRequest. A consumer who wants the gRPC declarations without AuthN.Components' Razor components references only this assembly, wraps its own UI around IAuthenticationService, and wires it to whatever backend it sees fit.</Description>
 	</PropertyGroup>
 	<ItemGroup>
-		<NorseRef Include="Abstractions.Contracts" Generator="true">
+		<NorseRef Include="Abstractions.Contracts">
 			<Repo>Asgard</Repo>
 		</NorseRef>
 		<PackageReference Include="Microsoft.AspNetCore.Authorization" Version="11.*-*" />
