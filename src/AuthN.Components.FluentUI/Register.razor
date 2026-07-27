@@ -1,5 +1,6 @@
 @page "/Account/Register"
-@inject IAuthenticationGateway AuthenticationGateway
+@inherits AsyncComponentBase
+@inject IAuthenticationService AuthenticationService
 @inject NavigationManager Navigation
 
 <PageTitle>Register</PageTitle>
@@ -29,7 +30,7 @@
 	async Task HandleRegisterAsync()
 	{
 		_messageStore.Clear();
-		var outcome = await AuthenticationGateway.Register(_request);
+		var outcome = await AuthenticationService.Register(_request, CancellationToken);
 
 		if (outcome.TryGetValue(out Failed failed))
 		{

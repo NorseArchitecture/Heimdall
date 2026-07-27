@@ -1,6 +1,6 @@
 @page "/Account/Login"
 @inherits AsyncComponentBase
-@inject IAuthenticationGateway AuthenticationGateway
+@inject IAuthenticationService AuthenticationService
 @inject NavigationManager Navigation
 
 <PageTitle>Log in</PageTitle>
@@ -31,7 +31,7 @@
     async Task HandleLoginAsync()
     {
         _messageStore.Clear();
-        var outcome = await AuthenticationGateway.Login(_request, CancellationToken);
+        var outcome = await AuthenticationService.Login(_request, CancellationToken);
 
         switch (outcome)
         {
