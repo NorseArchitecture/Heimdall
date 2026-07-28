@@ -18,5 +18,5 @@ The authn story for the Norse Architecture — **`Norse.AuthN`**: login, registe
 
 Heimdall is one realm of the [Norse Architecture](https://github.com/NorseArchitecture). The whole platform composes at [Bifröst](https://github.com/NorseArchitecture/Bifrost) — clone once, cross the bridge, and every session starts there so decisions get brainstormed across the entire landscape, not in isolation. Every design is tried in [Glitnir](https://github.com/NorseArchitecture/Glitnir), the design court, before code is forged here; this realm's specs and plans will live in the court's [docs/Heimdall/](https://github.com/NorseArchitecture/Glitnir/tree/master/docs/Heimdall) once they converge.
 
-## Soundtrack: Heimdallr Vakir | Heimdall Awakens
-[![Soundtrack: Heimdallr Vakir | Heimdall Awakens](https://img.youtube.com/vi/eg6fcDpvtkA/maxresdefault.jpg)](https://www.youtube.com/watch?v=eg6fcDpvtkA)
+## Soundtrack: Gjallarhorn
+[![Soundtrack: Gjallarhorn](https://img.youtube.com/vi/-Y0OKTuMICM/maxresdefault.jpg)](https://www.youtube.com/watch?v=-Y0OKTuMICM)
