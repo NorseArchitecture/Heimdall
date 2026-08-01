@@ -16,13 +16,19 @@
 		</PackageReference>
 	</ItemGroup>
 	<!--
-		Applies whether or not Bifrost is present — a generator forwarded transitively (NuGet's
-		package-analyzer propagation reaches through any ProjectReference to a project that opted
-		in via NorseRef Generator="true") also sees THIS project's own compilation and regenerates
+		Applies whether or not Bifrost is present, and only to analyzers that arrived through the
+		NuGet package chain (NuGetPackageId metadata set) — the one mechanism that pushes a
+		generator into a compilation that didn't ask for it: NuGet's package-analyzer propagation
+		reaches transitively through any ProjectReference to a project that opted in via NorseRef
+		Generator="true", so the generator also sees THIS project's own compilation and regenerates
 		its own copy of whatever it emits, colliding (CS0121) with the copy already compiled into
 		the project it was meant for. Only a project that itself declares the matching NorseRef
-		with Generator="true" should actually run that generator; everyone else strips it. Full
-		design: ../Glitnir/docs/Platform/specs/2026-07-01-norseref-generator-forwarding-design.md
+		with Generator="true" should actually run that generator; every other NuGet-delivered copy
+		is stripped. An analyzer wired via ProjectReference — a project's own sibling gen/
+		generator, or Bifrost's dev-mode Choose-block forwarding — is deliberate by construction
+		and is never a strip candidate.
+		Full design: ../Glitnir/docs/Platform/specs/2026-07-01-norseref-generator-forwarding-design.md
+		Provenance scoping: ../Glitnir/docs/Platform/specs/2026-07-31-norseref-strip-provenance-scoping-design.md
 	-->
 	<Target Name="_NorseRemoveUnwantedGeneratorAnalyzers" BeforeTargets="CoreCompile" Condition="'@(Analyzer)' != ''">
 		<ItemGroup>
@@ -33,7 +39,7 @@
 			<_NorseWantedGeneratorAnalyzerNames>;@(_NorseWantedGeneratorAnalyzer);</_NorseWantedGeneratorAnalyzerNames>
 		</PropertyGroup>
 		<ItemGroup>
-			<Analyzer Remove="@(Analyzer)" Condition="$([System.Text.RegularExpressions.Regex]::IsMatch('%(Analyzer.Filename)', '^Norse\..+\.Generator$')) and !$(_NorseWantedGeneratorAnalyzerNames.Contains(';%(Analyzer.Filename);'))" />
+			<Analyzer Remove="@(Analyzer)" Condition="'%(Analyzer.NuGetPackageId)' != '' and $([System.Text.RegularExpressions.Regex]::IsMatch('%(Analyzer.Filename)', '^Norse\..+\.Generator$')) and !$(_NorseWantedGeneratorAnalyzerNames.Contains(';%(Analyzer.Filename);'))" />
 		</ItemGroup>
 	</Target>
 </Project>
