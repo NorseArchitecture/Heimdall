@@ -33,6 +33,10 @@
 	<Target Name="_NorseRemoveUnwantedGeneratorAnalyzers" BeforeTargets="CoreCompile" Condition="'@(Analyzer)' != ''">
 		<ItemGroup>
 			<_NorseWantedGeneratorAnalyzer Include="@(NorseRef->WithMetadataValue('Generator', 'true')->'Norse.%(Identity).Generator')" />
+			<!-- Gap 4 (2026-08-02): a second generator on the same NorseRef library, named via the
+			     separate NorseGeneratorRef item list (see Bifrost/Directory.Build.targets) rather than
+			     the Generator="true" boolean, since that convention only ever names one. -->
+			<_NorseWantedGeneratorAnalyzer Include="@(NorseGeneratorRef->'Norse.%(Identity)')" />
 		</ItemGroup>
 		<PropertyGroup>
 			<!-- Semicolon-joined so a per-Analyzer-item Condition can do a plain substring Contains check below. -->
