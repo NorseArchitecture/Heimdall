@@ -26,25 +26,24 @@
 		     grab then fails pack with NU5019, and the forwarding hook below finds nothing in
 		     @(ReferenceCopyLocalPaths) either. Forcing copy-local makes both modes behave the same. -->
 		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+		<!--
+			A ProjectReference with OutputItemType="Analyzer" only pulls THIS project's own GetTargetPath
+			output into the consumer's @(Analyzer) set — never this project's transitive references. Without
+			this hook, a NorseRef'd dependency's DLL (e.g. Norse.Abstractions.Emit) never reaches the
+			consumer's analyzer load context and the generator dies at runtime with FileNotFoundException
+			(surfaced to the consumer as CS8785). Hoisted here (not left per-project) because every gen/
+			project needs the same forwarding regardless of which NorseRef dependency it declares — the
+			filter is a no-op for a project that references none of the filenames below. Mirrors
+			Asgard/gen/Abstractions.Contracts.Generator/Abstractions.Contracts.Generator.csproj.
+		-->
+		<GetTargetPathDependsOn>$(GetTargetPathDependsOn);_NorseIncludeEmitDependencyTargetPath</GetTargetPathDependsOn>
 	</PropertyGroup>
 	<ItemGroup>
+		<InternalsVisibleTo Include="$(AssemblyName).Tests" />
 		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="*">
 			<PrivateAssets>all</PrivateAssets>
 		</PackageReference>
 	</ItemGroup>
-	<!--
-		A ProjectReference with OutputItemType="Analyzer" only pulls THIS project's own GetTargetPath
-		output into the consumer's @(Analyzer) set — never this project's transitive references. Without
-		this hook, a NorseRef'd dependency's DLL (e.g. Norse.Abstractions.Emit) never reaches the
-		consumer's analyzer load context and the generator dies at runtime with FileNotFoundException
-		(surfaced to the consumer as CS8785). Hoisted here (not left per-project) because every gen/
-		project needs the same forwarding regardless of which NorseRef dependency it declares — the
-		filter is a no-op for a project that references none of the filenames below. Mirrors
-		Asgard/gen/Abstractions.Contracts.Generator/Abstractions.Contracts.Generator.csproj.
-	-->
-	<PropertyGroup>
-		<GetTargetPathDependsOn>$(GetTargetPathDependsOn);_NorseIncludeEmitDependencyTargetPath</GetTargetPathDependsOn>
-	</PropertyGroup>
 	<Target Name="_NorseIncludeEmitDependencyTargetPath">
 		<ItemGroup>
 			<TargetPathWithTargetPlatformMoniker Include="@(ReferenceCopyLocalPaths->WithMetadataValue('Filename', 'Norse.Abstractions.Emit')->WithMetadataValue('Extension', '.dll'))" IncludeRuntimeDependency="false" />
