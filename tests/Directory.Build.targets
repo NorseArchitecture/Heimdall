@@ -1,11 +1,18 @@
 <Project>
 	<PropertyGroup>
 		<OutputType>Exe</OutputType>
+		<!-- Import chains through the realm-root Directory.Build.targets (shared law: Using Remove,
+		     analyzer delivery), which itself chains up to Bifrost in workspace mode. The fallback
+		     condition below still probes for BIFROST specifically — the realm-root file always
+		     exists, so its existence stopped meaning "workspace". -->
+		<_ParentTargets>
+			$([MSBuild]::GetPathOfFileAbove('Directory.Build.targets', '$(MSBuildThisFileDirectory)../'))
+		</_ParentTargets>
 		<_BifrostTargets>
 			$([MSBuild]::GetPathOfFileAbove('Directory.Build.targets', '$(MSBuildThisFileDirectory)../../'))
 		</_BifrostTargets>
 	</PropertyGroup>
-	<Import Project="$(_BifrostTargets)" Condition="Exists('$(_BifrostTargets)')" />
+	<Import Project="$(_ParentTargets)" Condition="Exists('$(_ParentTargets)')" />
 	<ItemGroup Condition="!Exists('$(_BifrostTargets)')">
 		<PackageReference Include="@(NorseRef->'Norse.%(Identity)')" Version="*" />
 		<PackageReference Include="@(NorseDesignRef->'Norse.%(Identity)')" Version="*">
@@ -43,13 +50,4 @@
 			<Analyzer Remove="@(Analyzer)" Condition="'%(Analyzer.NuGetPackageId)' != '' and $([System.Text.RegularExpressions.Regex]::IsMatch('%(Analyzer.Filename)', '^Norse\..+\.Generator$')) and !$(_NorseWantedGeneratorAnalyzerNames.Contains(';%(Analyzer.Filename);'))" />
 		</ItemGroup>
 	</Target>
-	<ItemGroup>
-		<!--
-			The .NET 11 SDK injects this namespace as an implicit global using; it is a banned wire-format
-			root (NORSE070), so the injection is removed at the source platform-wide. Must live at targets
-			evaluation time — a props-level Remove precedes the SDK's Include and removes nothing. An
-			authored `using System.Net.Http.Json;` still convicts; Midgard/Yggdrasil re-add locally where legal.
-		-->
-		<Using Remove="System.Net.Http.Json" />
-	</ItemGroup>
 </Project>

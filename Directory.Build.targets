@@ -1,0 +1,46 @@
+<Project>
+	<PropertyGroup>
+		<_ParentTargets>$([MSBuild]::GetPathOfFileAbove('Directory.Build.targets', '$(MSBuildThisFileDirectory)../'))</_ParentTargets>
+	</PropertyGroup>
+	<Import Project="$(_ParentTargets)" Condition="Exists('$(_ParentTargets)')" />
+	<!--
+		The realm-root targets — the platform's first (minted 2026-08-03): law that binds src, tests,
+		and gen alike lives here exactly once, and the group-level Directory.Build.targets chain
+		through this file on their way up to Bifrost (workspace) or nowhere (standalone).
+	-->
+	<ItemGroup>
+		<!--
+			The .NET 11 SDK injects this namespace as an implicit global using; it is a banned wire-format
+			root (NORSE070), so the injection is removed at the source platform-wide. Must live at targets
+			evaluation time — a props-level Remove precedes the SDK's Include and removes nothing. An
+			authored `using System.Net.Http.Json;` still convicts; Midgard/Yggdrasil re-add locally where legal.
+		-->
+		<Using Remove="System.Net.Http.Json" />
+	</ItemGroup>
+	<!--
+		The Law of the Realms (NORSE070-073 + NORSE079): standalone/CI builds resolve the analyzer
+		package here; workspace builds get it as a ProjectReference from Bifrost's root
+		Directory.Build.targets instead. Lives at TARGETS evaluation time deliberately — CPM's
+		ManagePackageVersionsCentrally is defined by Directory.Packages.props, which imports after
+		Directory.Build.props, so a props-level Choose cannot see it and misfires the versioned
+		branch under CPM (NU1008; proven live 2026-08-03 — the same evaluation-order lesson as the
+		Using Remove above). Spec:
+		Glitnir/docs/Platform/specs/2026-08-03-realm-dependency-law-compiler-enforcement-design.md
+	-->
+	<Choose>
+		<When Condition="'$(UseProjectReferences)' == 'true' OR '$(MSBuildProjectName)' == 'Architecture.Analyzers'">
+			<PropertyGroup />
+		</When>
+		<When Condition="'$(ManagePackageVersionsCentrally)' == 'true'">
+			<ItemGroup>
+				<PackageReference Include="Norse.Architecture.Analyzers" PrivateAssets="all" />
+			</ItemGroup>
+		</When>
+		<Otherwise>
+			<ItemGroup>
+				<!-- "*" = latest released, never prerelease — the analyzer ships no beta packages (ruled 2026-08-03). -->
+				<PackageReference Include="Norse.Architecture.Analyzers" Version="*" PrivateAssets="all" />
+			</ItemGroup>
+		</Otherwise>
+	</Choose>
+</Project>
