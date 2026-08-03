@@ -29,4 +29,27 @@
 		<_ParentProps>$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))</_ParentProps>
 	</PropertyGroup>
 	<Import Project="$(_ParentProps)" Condition="Exists('$(_ParentProps)')" />
+	<!--
+		The Law of the Realms (NORSE070-073), delivered with the void itself: standalone/CI builds
+		resolve the analyzer package here, before a realm writes its first line; workspace builds get
+		the same analyzer as a ProjectReference from Bifrost's root Directory.Build.targets instead.
+		The analyzer project is excluded from its own law reference (self-reference guard). Spec:
+		Glitnir/docs/Platform/specs/2026-08-03-realm-dependency-law-compiler-enforcement-design.md
+	-->
+	<Choose>
+		<When Condition="'$(UseProjectReferences)' == 'true' OR '$(MSBuildProjectName)' == 'Architecture.Analyzers'">
+			<PropertyGroup />
+		</When>
+		<When Condition="'$(ManagePackageVersionsCentrally)' == 'true'">
+			<ItemGroup>
+				<PackageReference Include="Norse.Architecture.Analyzers" PrivateAssets="all" />
+			</ItemGroup>
+		</When>
+		<Otherwise>
+			<ItemGroup>
+				<!-- "*" = latest released, never prerelease — the analyzer ships no beta packages (ruled 2026-08-03). -->
+				<PackageReference Include="Norse.Architecture.Analyzers" Version="*" PrivateAssets="all" />
+			</ItemGroup>
+		</Otherwise>
+	</Choose>
 </Project>

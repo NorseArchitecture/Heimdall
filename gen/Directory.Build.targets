@@ -8,4 +8,13 @@
 	<ItemGroup Condition="!Exists('$(_BifrostTargets)')">
 		<PackageReference Include="@(NorseRef->'Norse.%(Identity)')" Version="*" />
 	</ItemGroup>
+	<ItemGroup>
+		<!--
+			The .NET 11 SDK injects this namespace as an implicit global using; it is a banned wire-format
+			root (NORSE070), so the injection is removed at the source platform-wide. Must live at targets
+			evaluation time — a props-level Remove precedes the SDK's Include and removes nothing. An
+			authored `using System.Net.Http.Json;` still convicts; Midgard/Yggdrasil re-add locally where legal.
+		-->
+		<Using Remove="System.Net.Http.Json" />
+	</ItemGroup>
 </Project>
