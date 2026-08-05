@@ -1,0 +1,60 @@
+@page "/Account/Manage/PersonalData"
+@using Microsoft.JSInterop
+@inherits AsyncComponentBase
+@implements IAsyncDisposable
+@inject IIdentityService IdentityService
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Personal Data</PageTitle>
+
+<h3>Personal Data</h3>
+
+<FluentGrid>
+    <FluentGridItem xs="12" sm="6">
+        <p>Your account contains personal data that you have given us. This page allows you to download or delete that data.</p>
+        <p>
+            <strong>Deleting this data will permanently remove your account, and this cannot be recovered.</strong>
+        </p>
+        <FluentButton Type="ButtonType.Button" Appearance="ButtonAppearance.Primary" Style="width:20%;" OnClick="HandleDownloadAsync">Download</FluentButton>
+        <p style="margin-top: 10px; text-align: end;">
+            <FluentLink Href="Account/Manage/DeletePersonalData">Delete your personal data</FluentLink>
+        </p>
+    </FluentGridItem>
+</FluentGrid>
+
+@code {
+    IJSObjectReference? _module;
+
+    // Download is a gRPC call (2026-08-04 ruling), not a form-POST — GetMyPersonalDataAsync
+    // replaces Himinbjörg's DownloadPersonalData endpoint outright. The response is materialized
+    // client-side via a small JS-interop helper (wwwroot/downloadFile.js) instead of a server
+    // Content-Disposition response, since there is no server round trip to attach one to.
+    // JsonSerializer never runs here — NORSE070 bans System.Text.Json calls outside Midgard/
+    // Yggdrasil, so the JS module owns the JSON.stringify call; personalData crosses the JS
+    // interop boundary as a plain record, marshaled by the Blazor runtime itself, not by us.
+    async Task HandleDownloadAsync()
+    {
+        var outcome = await IdentityService.GetMyPersonalDataAsync(new(), CancellationToken);
+        if (outcome is not Success<PersonalDataResponse>(var personalData))
+            return; // Failed(...) — nothing to download; richer error surfacing is a future pass.
+
+        // Cached, not re-imported per click — the module reference is disposed in DisposeAsync below.
+        _module ??= await JSRuntime.InvokeAsync<IJSObjectReference>("import", "./_content/Norse.AuthN.Components.FluentUI/downloadFile.js");
+        await _module.InvokeVoidAsync("downloadJson", "PersonalData.json", personalData);
+    }
+
+    /// <summary>
+    /// Disposes the cached JS module reference. Implementing <see cref="IAsyncDisposable"/> on a
+    /// component that also inherits <see cref="AsyncComponentBase"/>'s synchronous <c>IDisposable</c>
+    /// means the framework calls only this overload, never the base's — so the base's own
+    /// <c>Dispose()</c> (which cancels/disposes its <see cref="CancellationToken"/> source) is
+    /// invoked explicitly here, or it would silently stop running at all.
+    /// </summary>
+    public async ValueTask DisposeAsync()
+    {
+        if (_module is not null)
+            await _module.DisposeAsync();
+        Dispose();
+    }
+}
