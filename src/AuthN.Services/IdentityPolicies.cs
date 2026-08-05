@@ -3,9 +3,11 @@ namespace Norse.AuthN.Services;
 /// <summary>
 /// Named authorization policies for the identity disclosure surface (<see cref="IIdentityService"/>).
 /// Constants only — this assembly never references <c>Abstractions.Web.Server</c>, so the actual
-/// <c>RequireRole</c>/policy registration is Himinbjörg's job, server-side (Task 19b). These names
-/// are wire-adjacent metadata the concrete host mirrors onto its methods for gRPC endpoint
-/// discovery, the same role <see cref="AuthNPolicies.Public"/> plays for the issuance surface.
+/// <c>RequireRole</c>/policy registration happens at the consuming host's composition root, the same
+/// place <see cref="AuthNPolicies.Public"/> registers today: Yggdrasil's <c>Hosting.Web.Server</c>
+/// <c>Program.cs</c>, not Himinbjörg. Himinbjörg's command wrappers only <em>name</em> these policies
+/// via <c>[Authorize(Policy = ...)]</c> — naming a policy and registering what satisfies it are
+/// different jobs, and only the composition root does the latter.
 /// </summary>
 public static class IdentityPolicies
 {
