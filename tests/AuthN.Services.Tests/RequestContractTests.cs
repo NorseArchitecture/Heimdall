@@ -27,7 +27,7 @@ public sealed class RequestContractTests
 	[Fact]
 	void Wire_records_carry_no_Authorize_attribute()
 	{
-		foreach (var wireType in (Type[])[typeof(LoginRequest), typeof(RegisterRequest), typeof(LoginResult), typeof(RegisterResult), typeof(LogoutResult)])
+		foreach (var wireType in (Type[])[typeof(LoginRequest), typeof(RegisterRequest), typeof(LoginResult), typeof(RegisterResult), typeof(LogoutResult), typeof(GetMyPersonalDataRequest), typeof(GetMaskedPersonalDataRequest), typeof(PersonalDataResponse), typeof(MaskedPersonalDataResponse)])
 			wireType.GetCustomAttribute<AuthorizeAttribute>()
 				.ShouldBeNull($"{wireType.Name} must not carry [Authorize] — that policy lives on Himinbjörg's command wrapper.");
 	}
@@ -35,7 +35,7 @@ public sealed class RequestContractTests
 	[Fact]
 	void Every_service_method_ends_with_a_trailing_cancellation_token()
 	{
-		foreach (var method in typeof(IAuthenticationService).GetMethods())
+		foreach (var method in typeof(IAuthenticationService).GetMethods().Concat(typeof(IIdentityService).GetMethods()))
 			method.GetParameters()[^1].ParameterType.ShouldBe(typeof(CancellationToken));
 	}
 }
