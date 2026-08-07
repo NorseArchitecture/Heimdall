@@ -1,5 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 	<ItemGroup>
 		<ProjectReference Include="../../src/AuthN.Services/AuthN.Services.csproj" />
+		<PackageReference Include="protobuf-net" Version="3.*" />
 	</ItemGroup>
 </Project>

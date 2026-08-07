@@ -6,8 +6,9 @@ namespace Norse.AuthN.Services;
 /// The wire response for <see cref="IAuthenticationService.Register"/>. A bare success signal — a
 /// failed registration always carries field errors on the <see cref="Norse.Abstractions.Contracts.Failed"/>
 /// case instead (Conflict for a taken email, Validation for a rejected password), so there is no
-/// anti-enumeration collapse to preserve here the way <see cref="LoginResult.Succeeded"/> preserves
-/// one for sign-in.
+/// anti-enumeration collapse to preserve here the way <see cref="LoginResult"/>'s collapsed
+/// <see cref="Norse.Abstractions.Contracts.ErrorCategory.InvalidCredentials"/> problem preserves one
+/// for sign-in.
 /// </summary>
 [DataContract]
 public sealed record RegisterResult

@@ -1,5 +1,5 @@
 @page "/Account/Login"
-@inherits AsyncComponentBase
+@inherits OutcomeFormComponentBase
 @inject IAuthenticationService AuthenticationService
 @inject NavigationManager Navigation
 
@@ -7,60 +7,19 @@
 
 <h1>Log in</h1>
 
-<EditForm EditContext="_editContext" OnValidSubmit="HandleLoginAsync" FormName="authn-login">
-    <FluentValidator />
-    <ValidationSummary />
-    <FluentTextInput @bind-Value="_request.Email" Label="Email" Required="true" />
-    <FluentTextInput @bind-Value="_request.Password" TextInputType="TextInputType.Password" Label="Password" Required="true" />
-    <FluentCheckbox @bind-Value="_request.RememberMe" Label="Remember me" />
-    <FluentButton Type="ButtonType.Submit" Appearance="ButtonAppearance.Primary">Log in</FluentButton>
+<EditForm Model="_request" OnValidSubmit="HandleLoginAsync" FormName="authn-login">
+	<FluentValidator />
+	<ModelValidationSummary />
+	<FluentTextInput @bind-Value="_request.Email" Label="Email" Required="true" />
+	<FluentTextInput @bind-Value="_request.Password" TextInputType="TextInputType.Password" Label="Password" Required="true" />
+	<FluentCheckbox @bind-Value="_request.RememberMe" Label="Remember me" />
+	<FluentButton Type="ButtonType.Submit" Appearance="ButtonAppearance.Primary" Disabled="IsSubmitting">Log in</FluentButton>
 </EditForm>
 
 @code {
-    readonly LoginRequest _request = new() { Email = "", Password = "" };
-    EditContext _editContext = null!;
-    ValidationMessageStore _messageStore = null!;
+	readonly LoginRequest _request = new() { Email = "", Password = "" };
 
-    /// <inheritdoc />
-    protected override void OnInitialized()
-    {
-        _editContext = new(_request);
-        _messageStore = new(_editContext);
-    }
-
-    async Task HandleLoginAsync()
-    {
-        _messageStore.Clear();
-        var outcome = await AuthenticationService.Login(_request, CancellationToken);
-
-        switch (outcome)
-        {
-            case Success<LoginResult>({ Succeeded: false }):
-                // Outcome succeeded (the call itself worked); LoginResult.Succeeded=false is the
-                // deliberate anti-enumeration collapse — wrong username and wrong password both land
-                // here with nothing more specific the server is willing to say.
-                ApplyErrors(new Dictionary<string, string[]> { [""] = ["Invalid email or password."] });
-                break;
-            case Success<LoginResult>(var loginResult):
-                Navigation.NavigateTo(loginResult.DeferredCompletionUrl ?? "/", forceLoad: true);
-                break;
-            case Failed(var problem):
-                // A real failure category (LockedOut, Forbidden, ...) — Problem.Errors already carries the message.
-                ApplyErrors(problem.Errors);
-                break;
-        }
-    }
-
-    void ApplyErrors(IReadOnlyDictionary<string, string[]> errors)
-    {
-        foreach (var (field, messages) in errors)
-        {
-            FieldIdentifier identifier = new(_request, field);
-            foreach (var message in messages)
-                _messageStore.Add(identifier, message);
-        }
-
-        _editContext.NotifyValidationStateChanged();
-    }
-
+	Task HandleLoginAsync(EditContext editContext) =>
+		SubmitAsync(editContext, ct => AuthenticationService.Login(_request, ct),
+			result => Navigation.NavigateTo(result.DeferredCompletionUrl ?? "/", forceLoad: true));
 }
