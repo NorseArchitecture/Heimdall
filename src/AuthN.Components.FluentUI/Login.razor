@@ -1,4 +1,5 @@
 @page "/Account/Login"
+@layout GateLayout
 @inherits OutcomeFormComponentBase
 @inject IAuthenticationService AuthenticationService
 @inject NavigationManager Navigation
@@ -6,15 +7,22 @@
 <PageTitle>Log in</PageTitle>
 
 <h1>Log in</h1>
+<p class="gate-subtitle">Welcome back to the bridge.</p>
 
 <EditForm Model="_request" OnValidSubmit="HandleLoginAsync" FormName="authn-login">
 	<FluentValidator />
 	<ModelValidationSummary />
 	<FluentTextInput @bind-Value="_request.Email" Label="Email" Required="true" />
-	<FluentTextInput @bind-Value="_request.Password" TextInputType="TextInputType.Password" Label="Password" Required="true" />
+	<FluentTextInput @bind-Value="_request.Password" TextInputType="TextInputType.Password" Label="Password" Required="true">
+		<LabelTemplate>
+			<a class="gate-forgot-password" href="Account/ForgotPassword">Forgot password?</a>
+		</LabelTemplate>
+	</FluentTextInput>
 	<FluentCheckbox @bind-Value="_request.RememberMe" Label="Remember me" />
 	<FluentButton Type="ButtonType.Submit" Appearance="ButtonAppearance.Primary" Disabled="IsSubmitting">Log in</FluentButton>
 </EditForm>
+
+<p class="gate-cross-link">New here? <a href="Account/Register">Create an account</a></p>
 
 @code {
 	readonly LoginRequest _request = new() { Email = "", Password = "" };

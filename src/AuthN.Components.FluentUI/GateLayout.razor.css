@@ -1,0 +1,123 @@
+/* Full-viewport, no-shell split: 52% identity panel / 3px prismatic seam / remaining form column. */
+.gate {
+	display: grid;
+	grid-template-columns: 52% 3px 1fr;
+	min-height: 100vh;
+}
+
+/* Constant-dark landmark — deliberately does not follow the light/dark toggle in either direction. */
+.gate-panel {
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+	box-sizing: border-box;
+	padding: var(--spacing-12, 48px);
+	background: var(--color-neutral-900, #1c1a17);
+	color: var(--color-neutral-100, #f6f4f0);
+}
+
+.gate-eyebrow {
+	letter-spacing: .28em;
+	text-transform: uppercase;
+	font-size: var(--font-size-xs, 12px);
+	font-weight: var(--font-weight-semibold, 600);
+}
+
+.gate-voice h2 {
+	margin: 0 0 var(--spacing-4, 16px);
+	font-size: var(--font-size-4xl, 36px);
+	font-weight: var(--font-weight-bold, 700);
+	line-height: var(--font-lineHeight-tight, 1.2);
+}
+
+.gate-voice p {
+	margin: 0;
+	font-size: var(--font-size-lg, 18px);
+	line-height: var(--font-lineHeight-relaxed, 1.75);
+	color: var(--color-neutral-300, #d3cdc2);
+}
+
+.gate-receipts {
+	font-family: var(--font-family-mono, 'Cascadia Code', ui-monospace, monospace);
+	font-size: var(--font-size-sm, 14px);
+	color: var(--color-neutral-500, #797265);
+}
+
+/* The seam itself carries the composed gradient as one custom property — Naglfar's build already
+   bakes all six stops into linear-gradient(180deg, ...), so there is nothing to compose here. */
+.gate-seam {
+	background: var(--bifrost-seam);
+}
+
+/* Right column follows the page's own theme, unlike the panel. */
+.gate-form {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	box-sizing: border-box;
+	padding: var(--spacing-8, 32px);
+	background: var(--color-semantic-surface, #ffffff);
+	color: var(--color-semantic-text, #1c1a17);
+}
+
+.gate-form-column {
+	width: 100%;
+	max-width: 280px;
+	margin: auto;
+}
+
+/* Input-width law: fields fill the 280px column, but the validation message slot is excluded from
+   that width so a long server/validator message wraps in place instead of ballooning the column
+   (and the page) wide — the manual repro this guards against. Selectors match FluentUI v5's actual
+   rendered structure (verified via a bUnit markup dump): <fluent-field><label slot="label">...
+   <fluent-text-input slot="input">...<fluent-text slot="message">...</fluent-field>. */
+::deep fluent-field {
+	width: 100%;
+}
+
+::deep fluent-field [slot="message"] {
+	max-width: 100%;
+	overflow-wrap: anywhere;
+}
+
+/* Login's Password field passes "Forgot password?" as LabelTemplate, so FluentField renders it
+   inside the same <label slot="label"> as the "Password" text (confirmed via decompiling
+   FluentField.BuildRenderTree — Label and LabelTemplate render into one element, in that order).
+   :has() scopes this to only the label that actually carries the link, leaving every other
+   field's label (single-line, no room needed) untouched. */
+::deep fluent-field label:has(.gate-forgot-password) {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: var(--spacing-2, 8px);
+}
+
+::deep .gate-forgot-password {
+	font-size: var(--font-size-sm, 14px);
+	font-weight: var(--font-weight-medium, 500);
+	color: var(--color-semantic-primary, #b5610f);
+	text-decoration: none;
+}
+
+::deep .gate-forgot-password:hover {
+	text-decoration: underline;
+}
+
+/* No motion introduced; focus must stay visible for every link @Body brings in (cross-links,
+   forgot-password) — ::deep because those anchors live in child content, not this component. */
+::deep a:focus-visible {
+	outline: 2px solid var(--color-semantic-primary, #b5610f);
+	outline-offset: 2px;
+}
+
+@media (max-width: 768px) {
+	.gate {
+		grid-template-columns: 1fr;
+		grid-template-rows: auto 3px 1fr;
+	}
+
+	.gate-voice p,
+	.gate-receipts {
+		display: none;
+	}
+}

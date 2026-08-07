@@ -1,0 +1,23 @@
+@* GateLayout: the no-shell, full-viewport split screen every auth page renders inside. Left is a
+   constant-dark identity panel (never follows the light/dark toggle — the gate itself is a fixed
+   landmark); a 3px prismatic seam (Naglfar's --bifrost-seam token) divides it from the page's own
+   themed surface on the right, where @Body — the page's own heading, subtitle, form, and cross-link
+   — renders inside a narrow, centered column. *@
+@inherits LayoutComponentBase
+
+<div class="gate">
+	<aside class="gate-panel">
+		<div class="gate-eyebrow">NORSE ARCHITECTURE</div>
+		<div class="gate-voice">
+			<h2>Heimdall keeps the gate.</h2>
+			<p>One identity for every realm — Server, WASM, and MAUI cross the same bridge.</p>
+		</div>
+		<div class="gate-receipts">norse_identity · OpenIddict · OAuth 2.1</div>
+	</aside>
+	<div class="gate-seam" aria-hidden="true"></div>
+	<main class="gate-form">
+		<div class="gate-form-column">
+			@Body
+		</div>
+	</main>
+</div>
