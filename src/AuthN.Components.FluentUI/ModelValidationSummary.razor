@@ -17,12 +17,27 @@
 	[CascadingParameter]
 	EditContext EditContext { get; set; } = null!;
 
+	// The EditContext this instance is actually subscribed to right now — tracked separately from
+	// the cascading parameter above because a parent can replace the cascaded EditContext (a new
+	// model, a re-keyed form) on a live instance without remounting it. OnParametersSet runs on every
+	// such change; OnInitialized does not. Dispose reads this field, never the cascading parameter,
+	// so it always unsubscribes from whatever this instance last subscribed to.
+	EditContext? _subscribedContext;
+
 	/// <inheritdoc />
-	protected override void OnInitialized()
+	protected override void OnParametersSet()
 	{
 		if (EditContext is null)
 			throw new InvalidOperationException($"{nameof(ModelValidationSummary)} requires a cascading EditContext — place it inside an EditForm.");
+
+		if (ReferenceEquals(EditContext, _subscribedContext))
+			return;
+
+		if (_subscribedContext is not null)
+			_subscribedContext.OnValidationStateChanged -= HandleValidationStateChanged;
+
 		EditContext.OnValidationStateChanged += HandleValidationStateChanged;
+		_subscribedContext = EditContext;
 		CollectMessages();
 	}
 
@@ -35,7 +50,10 @@
 	void CollectMessages() =>
 		_messages = [.. EditContext.GetValidationMessages(new FieldIdentifier(EditContext.Model, string.Empty))];
 
-	/// <summary>Unsubscribes from <see cref="EditContext.OnValidationStateChanged"/>.</summary>
-	public void Dispose() =>
-		EditContext.OnValidationStateChanged -= HandleValidationStateChanged;
+	/// <summary>Unsubscribes from the currently tracked <see cref="EditContext"/>'s <see cref="EditContext.OnValidationStateChanged"/>.</summary>
+	public void Dispose()
+	{
+		if (_subscribedContext is not null)
+			_subscribedContext.OnValidationStateChanged -= HandleValidationStateChanged;
+	}
 }

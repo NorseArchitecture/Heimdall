@@ -96,4 +96,39 @@ public sealed class ModelValidationSummaryTests : BunitContext
 
 		component.Markup.ShouldNotContain("After dispose.");
 	}
+
+	[Fact]
+	async Task Resubscribes_to_a_replaced_cascaded_EditContext_without_remounting()
+	{
+		FakeModel modelA = new();
+		EditContext contextA = new(modelA);
+		// CascadingEditContextHost cascades EditContext through a plain component parameter,
+		// so the test can swap it on the live host instance without remounting the child —
+		// bUnit's re-render extension explicitly forbids supplying a new cascading value directly.
+		var host = Render<CascadingEditContextHost>(parameters => parameters.Add(p => p.Context, contextA));
+		var component = host.FindComponent<ModelValidationSummary>();
+		ValidationMessageStore storeA = new(contextA);
+		storeA.Add(new FieldIdentifier(modelA, string.Empty), "From A.");
+		await component.InvokeAsync(contextA.NotifyValidationStateChanged);
+		component.Markup.ShouldContain("From A.");
+
+		// Same component instance, new cascaded EditContext — no remount, no Dispose.
+		FakeModel modelB = new();
+		EditContext contextB = new(modelB);
+		host.Render(parameters => parameters.Add(p => p.Context, contextB));
+
+		ValidationMessageStore storeB = new(contextB);
+		storeB.Add(new FieldIdentifier(modelB, string.Empty), "From B.");
+		await component.InvokeAsync(contextB.NotifyValidationStateChanged);
+
+		component.Markup.ShouldContain("From B.");
+		component.Markup.ShouldNotContain("From A.");
+
+		// The subscription must have genuinely moved — A's own notifications no longer do anything.
+		storeA.Add(new FieldIdentifier(modelA, string.Empty), "From A again.");
+		await component.InvokeAsync(contextA.NotifyValidationStateChanged);
+
+		component.Markup.ShouldNotContain("From A again.");
+		component.Markup.ShouldContain("From B.");
+	}
 }
