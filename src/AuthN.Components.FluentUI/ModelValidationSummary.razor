@@ -1,0 +1,41 @@
+@implements IDisposable
+
+@if (_messages.Count > 0)
+{
+	<FluentMessageBar Intent="MessageBarIntent.Error" AllowDismiss="false" Class="norse-model-errors">
+		@foreach (var message in _messages)
+		{
+			<div>@message</div>
+		}
+	</FluentMessageBar>
+}
+
+@code {
+	IReadOnlyList<string> _messages = [];
+
+	/// <summary>The cascaded <see cref="EditContext"/> this summary watches. Required — an <see cref="EditForm"/> ancestor must supply it.</summary>
+	[CascadingParameter]
+	EditContext EditContext { get; set; } = null!;
+
+	/// <inheritdoc />
+	protected override void OnInitialized()
+	{
+		if (EditContext is null)
+			throw new InvalidOperationException($"{nameof(ModelValidationSummary)} requires a cascading EditContext — place it inside an EditForm.");
+		EditContext.OnValidationStateChanged += HandleValidationStateChanged;
+		CollectMessages();
+	}
+
+	void HandleValidationStateChanged(object? sender, ValidationStateChangedEventArgs e)
+	{
+		CollectMessages();
+		StateHasChanged();
+	}
+
+	void CollectMessages() =>
+		_messages = [.. EditContext.GetValidationMessages(new FieldIdentifier(EditContext.Model, string.Empty))];
+
+	/// <summary>Unsubscribes from <see cref="EditContext.OnValidationStateChanged"/>.</summary>
+	public void Dispose() =>
+		EditContext.OnValidationStateChanged -= HandleValidationStateChanged;
+}
