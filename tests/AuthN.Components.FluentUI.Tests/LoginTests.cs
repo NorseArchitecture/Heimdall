@@ -1,4 +1,5 @@
 using Bunit;
+using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.FluentUI.AspNetCore.Components;
 using Norse.AuthN.Services;
@@ -61,6 +62,7 @@ public sealed class LoginTests : BunitContext
 				_ => Task.FromResult<Outcome<LoginResult>>(new Failed(Problem.ModelError(ErrorCategory.InvalidCredentials, "Invalid email or password."))),
 				_ => Task.FromResult<Outcome<LoginResult>>(new Success<LoginResult>(new() { DeferredCompletionUrl = "/" })));
 		Services.AddSingleton(service);
+		Services.AddScoped<IValidator<LoginRequest>, LoginRequestValidator>();
 
 		var component = Render<Login>();
 		var inputs = component.FindAll("fluent-text-input");

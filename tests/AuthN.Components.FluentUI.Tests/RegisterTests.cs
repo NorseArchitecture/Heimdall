@@ -1,6 +1,5 @@
 using Bunit;
 using FluentValidation;
-using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.FluentUI.AspNetCore.Components;
@@ -53,12 +52,16 @@ public sealed class RegisterTests : BunitContext
 		await service.Received(2).Register(Arg.Any<RegisterRequest>(), Arg.Any<CancellationToken>());
 	}
 
-	// The blur-semantics lock (spec §6.1): the async email-exists rule must fire on blur (the
-	// FluentTextInput's change event) and at submit, but never per keystroke — Blazilla's field-change
-	// pass builds a member-name selector, so an @oninput-only edit never reaches the model-level
-	// validation pass that would run the email rule at all.
+	// The blur/submit lock (spec §6.1, scoped down from the original four-part keystroke lock —
+	// see the Task 12 fix report): the async email-exists rule fires on blur (the FluentTextInput's
+	// change event) and at submit, and the cascade stops before the service call entirely once the
+	// email fails its sync shape check first. A prior part 1 asserting "no call on keystroke input"
+	// via the ontextimmediate event was removed — Register.razor's FluentTextInput never sets
+	// Immediate="true" (it defaults to false), so that handler is FluentUI's own permanent no-op for
+	// this page's markup regardless of whether the validation cascade is wired correctly, and the
+	// assertion could never fail.
 	[Fact]
-	async Task The_email_exists_check_fires_on_blur_and_submit_but_never_per_keystroke()
+	async Task The_email_exists_check_fires_on_blur_and_submit_and_stops_before_the_service_on_malformed_input()
 	{
 		var service = Substitute.For<IAuthenticationService>();
 		service.EmailExists(Arg.Any<EmailExistsRequest>(), Arg.Any<CancellationToken>())
@@ -71,22 +74,17 @@ public sealed class RegisterTests : BunitContext
 		var component = Render<Register>();
 		var inputs = component.FindAll("fluent-text-input");
 
-		// (1) keystroke input without a change event: no call — FluentTextInput's native web
-		// component raises 'ontextimmediate' per keystroke, not the standard HTML 'oninput'.
-		await inputs[0].TriggerEventAsync("ontextimmediate", new ChangeEventArgs { Value = "baw@example.com" });
-		await service.DidNotReceiveWithAnyArgs().EmailExists(default!, Xunit.TestContext.Current.CancellationToken);
-
-		// (2) change (blur): one call is permitted and expected
+		// (1) change (blur): one call is permitted and expected
 		await inputs[0].ChangeAsync("baw@example.com");
 		await service.Received(1).EmailExists(Arg.Any<EmailExistsRequest>(), Arg.Any<CancellationToken>());
 
-		// (3) sync-invalid submit (malformed email): cascade stops before the service
+		// (2) sync-invalid submit (malformed email): cascade stops before the service
 		service.ClearReceivedCalls();
 		await inputs[0].ChangeAsync("not-an-email");
 		await component.Find("form").SubmitAsync();
 		await service.DidNotReceiveWithAnyArgs().EmailExists(default!, Xunit.TestContext.Current.CancellationToken);
 
-		// (4) a second valid submit calls again
+		// (3) a second valid submit calls again
 		service.ClearReceivedCalls();
 		await inputs[0].ChangeAsync("baw@example.com");
 		await inputs[1].ChangeAsync("correct horse battery");
