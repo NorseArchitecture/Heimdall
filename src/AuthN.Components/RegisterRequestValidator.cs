@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using Norse.Abstractions.Contracts;
 using Norse.AuthN.Services;
 using Norse.Primitives;
+using Norse.Primitives.Pii;
 
 namespace Norse.AuthN.Components;
 
@@ -41,7 +42,8 @@ public sealed partial class RegisterRequestValidator : AbstractValidator<Registe
 		RuleFor(x => x.Email)
 			.Cascade(CascadeMode.Stop)
 			.NotEmpty()
-			.EmailAddress()
+			.Must((request, _) => request.EmailParsed.TryGetValue(out Success<EmailAddress> _))
+			.WithMessage("Enter a valid email address (local@domain.tld).")
 			.CustomAsync(async (email, context, cancellationToken) =>
 			{
 				var outcome = await authenticationService.EmailExists(new() { Email = email }, cancellationToken).ConfigureAwait(false);
