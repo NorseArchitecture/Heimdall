@@ -34,6 +34,10 @@ public interface IAuthenticationService
 	[OperationContract]
 	Task<Outcome<RegisterResult>> Register(RegisterRequest request, CancellationToken cancellationToken = default);
 
+	/// <summary>Reports whether an account already exists for <paramref name="request"/>'s email.</summary>
+	[OperationContract]
+	Task<Outcome<BoolResponse>> EmailExists(EmailExistsRequest request, CancellationToken cancellationToken = default);
+
 	/// <summary>
 	/// Logs out the currently authenticated user. No request DTO — the caller's authenticated cookie
 	/// identifies who's logging out, and protobuf-net.Grpc supports a <see cref="CancellationToken"/>-only

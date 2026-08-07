@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using System.Reflection;
+using System.ServiceModel;
+using Norse.Abstractions.Contracts;
 
 namespace Norse.AuthN.Services.Tests;
 
@@ -27,7 +29,7 @@ public sealed class RequestContractTests
 	[Fact]
 	void Wire_records_carry_no_Authorize_attribute()
 	{
-		foreach (var wireType in (Type[])[typeof(LoginRequest), typeof(RegisterRequest), typeof(LoginResult), typeof(RegisterResult), typeof(LogoutResult), typeof(GetMyPersonalDataRequest), typeof(GetMaskedPersonalDataRequest), typeof(PersonalDataResponse), typeof(MaskedPersonalDataResponse)])
+		foreach (var wireType in (Type[])[typeof(LoginRequest), typeof(RegisterRequest), typeof(LoginResult), typeof(RegisterResult), typeof(LogoutResult), typeof(GetMyPersonalDataRequest), typeof(GetMaskedPersonalDataRequest), typeof(PersonalDataResponse), typeof(MaskedPersonalDataResponse), typeof(EmailExistsRequest)])
 			wireType.GetCustomAttribute<AuthorizeAttribute>()
 				.ShouldBeNull($"{wireType.Name} must not carry [Authorize] — that policy lives on Himinbjörg's command wrapper.");
 	}
@@ -37,5 +39,26 @@ public sealed class RequestContractTests
 	{
 		foreach (var method in typeof(IAuthenticationService).GetMethods().Concat(typeof(IIdentityService).GetMethods()))
 			method.GetParameters()[^1].ParameterType.ShouldBe(typeof(CancellationToken));
+	}
+
+	[Fact]
+	void Email_exists_is_declared_on_the_authentication_contract()
+	{
+		var method = typeof(IAuthenticationService).GetMethod("EmailExists");
+
+		method.ShouldNotBeNull();
+		method.ReturnType.ShouldBe(typeof(Task<Outcome<BoolResponse>>));
+	}
+
+	[Fact]
+	void Every_service_operation_carries_the_operation_contract_attribute()
+	{
+		// A code-first gRPC method without [OperationContract] is a silently dead endpoint —
+		// this lock covers every current and future operation on both contracts.
+		Type[] contracts = [typeof(IAuthenticationService), typeof(IIdentityService)];
+
+		foreach (var method in contracts.SelectMany(c => c.GetMethods()))
+			method.GetCustomAttribute<OperationContractAttribute>()
+				.ShouldNotBeNull($"{method.DeclaringType!.Name}.{method.Name} is missing [OperationContract]");
 	}
 }
