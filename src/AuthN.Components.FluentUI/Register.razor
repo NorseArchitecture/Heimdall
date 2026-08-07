@@ -1,5 +1,5 @@
 @page "/Account/Register"
-@inherits AsyncComponentBase
+@inherits OutcomeFormComponentBase
 @inject IAuthenticationService AuthenticationService
 @inject NavigationManager Navigation
 
@@ -7,46 +7,23 @@
 
 <h1>Register</h1>
 
-<EditForm EditContext="_editContext" OnValidSubmit="HandleRegisterAsync" FormName="authn-register">
-	<FluentValidator />
-	<ValidationSummary />
+<EditForm Model="_request" OnSubmit="HandleRegisterAsync" FormName="authn-register">
+	<FluentValidator AsyncMode="true" />
+	<ModelValidationSummary />
 	<FluentTextInput @bind-Value="_request.Email" Label="Email" Required="true" />
 	<FluentTextInput @bind-Value="_request.Password" TextInputType="TextInputType.Password" Label="Password" Required="true" />
-	<FluentButton Type="ButtonType.Submit" Appearance="ButtonAppearance.Primary">Register</FluentButton>
+	<FluentButton Type="ButtonType.Submit" Appearance="ButtonAppearance.Primary" Disabled="IsSubmitting">Register</FluentButton>
 </EditForm>
 
 @code {
 	readonly RegisterRequest _request = new() { Email = "", Password = "" };
-	EditContext _editContext = null!;
-	ValidationMessageStore _messageStore = null!;
 
-	/// <inheritdoc />
-	protected override void OnInitialized()
+	async Task HandleRegisterAsync(EditContext editContext)
 	{
-		_editContext = new EditContext(_request);
-		_messageStore = new ValidationMessageStore(_editContext);
-	}
-
-	async Task HandleRegisterAsync()
-	{
-		_messageStore.Clear();
-		var outcome = await AuthenticationService.Register(_request, CancellationToken);
-
-		if (outcome.TryGetValue(out Failed failed))
-		{
-			// Register never produces an empty Errors dictionary on failure — Conflict/Validation are
-			// always populated (spec §9.3), unlike Login's anti-enumeration collapse. No fallback needed.
-			foreach (var (field, messages) in failed.Problem.Errors)
-			{
-				FieldIdentifier identifier = new(_request, field);
-				foreach (var message in messages)
-					_messageStore.Add(identifier, message);
-			}
-
-			_editContext.NotifyValidationStateChanged();
+		if (!await editContext.ValidateAsync())
 			return;
-		}
 
-		Navigation.NavigateTo("/Account/Login");
+		await SubmitAsync(editContext, ct => AuthenticationService.Register(_request, ct),
+			_ => Navigation.NavigateTo("/Account/Login"));
 	}
 }

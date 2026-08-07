@@ -1,19 +1,20 @@
 using System.Runtime.Serialization;
+using Norse.Abstractions.Contracts;
 
 namespace Norse.AuthN.Services;
 
 /// <summary>
-/// The wire response for <see cref="IAuthenticationService.Login"/>. <c>Succeeded=false</c> is a
-/// legitimate successful credential check (wrong username or password), not a failure — the two are
-/// deliberately never distinguished, see spec §9.3/§9.4.
+/// The wire response for <see cref="IAuthenticationService.Login"/>. A bare success signal — a
+/// rejected login (wrong username or password, deliberately never distinguished, see spec §9.3/§9.4)
+/// always carries the collapsed <see cref="ErrorCategory.InvalidCredentials"/> problem on the
+/// <see cref="Failed"/> case instead. The former <c>Succeeded</c> member
+/// predates the two-unions design — it was the pre-<see cref="Outcome{T}"/>/<see cref="Problem"/> era's
+/// way of carrying failure on a success envelope; deleting it completes the union migration rather
+/// than breaking a contract (ruled 2026-08-06).
 /// </summary>
 [DataContract]
 public sealed record LoginResult
 {
-	/// <summary>Whether the login attempt succeeded.</summary>
-	[DataMember(Order = 1)]
-	public required bool Succeeded { get; init; }
-
 	/// <summary>
 	/// Non-null only on the Blazor-Server in-process path, when the sign-in had to be deferred to a
 	/// forced-reload completion request (spec: circuits can't Set-Cookie once the response has
