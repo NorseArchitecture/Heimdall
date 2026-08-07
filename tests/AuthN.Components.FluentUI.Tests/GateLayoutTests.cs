@@ -33,7 +33,7 @@ public sealed class GateLayoutTests : BunitContext
 	{
 		var component = RenderGate();
 
-		component.Find(".gate-seam").ShouldNotBeNull();
+		component.Find(".gate-seam").GetAttribute("aria-hidden").ShouldBe("true");
 	}
 
 	[Fact]
@@ -45,7 +45,24 @@ public sealed class GateLayoutTests : BunitContext
 	}
 
 	[Fact]
-	void Login_renders_the_forgot_password_and_create_an_account_links()
+	void Login_renders_the_create_an_account_link()
+	{
+		Services.AddSingleton(Substitute.For<IAuthenticationService>());
+		Services.AddScoped<IValidator<LoginRequest>, LoginRequestValidator>();
+
+		var component = Render<Login>();
+
+		var createAccount = component.Find("a[href='Account/Register']");
+		createAccount.TextContent.ShouldBe("Create an account");
+	}
+
+	// FluentField renders Parameters.Label then Parameters.LabelTemplate into the same
+	// <label slot="label"> element (confirmed by decompiling FluentField.BuildRenderTree) — passing
+	// the link as the Password field's LabelTemplate is what actually puts it "beside the label",
+	// per spec, rather than as a block-level sibling after the field. Asserts the link's real
+	// ancestor, not just its presence/href, so a regression back to a sibling placement fails here.
+	[Fact]
+	void Login_places_the_forgot_password_link_inside_the_password_fields_label()
 	{
 		Services.AddSingleton(Substitute.For<IAuthenticationService>());
 		Services.AddScoped<IValidator<LoginRequest>, LoginRequestValidator>();
@@ -55,8 +72,10 @@ public sealed class GateLayoutTests : BunitContext
 		var forgotPassword = component.Find("a[href='Account/ForgotPassword']");
 		forgotPassword.TextContent.ShouldBe("Forgot password?");
 
-		var createAccount = component.Find("a[href='Account/Register']");
-		createAccount.TextContent.ShouldBe("Create an account");
+		var enclosingLabel = forgotPassword.Closest("label[slot='label']");
+
+		enclosingLabel.ShouldNotBeNull();
+		enclosingLabel.TextContent.ShouldContain("Password");
 	}
 
 	[Fact]

@@ -80,6 +80,29 @@
 	overflow-wrap: anywhere;
 }
 
+/* Login's Password field passes "Forgot password?" as LabelTemplate, so FluentField renders it
+   inside the same <label slot="label"> as the "Password" text (confirmed via decompiling
+   FluentField.BuildRenderTree — Label and LabelTemplate render into one element, in that order).
+   :has() scopes this to only the label that actually carries the link, leaving every other
+   field's label (single-line, no room needed) untouched. */
+::deep fluent-field label:has(.gate-forgot-password) {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: var(--spacing-2, 8px);
+}
+
+::deep .gate-forgot-password {
+	font-size: var(--font-size-sm, 14px);
+	font-weight: var(--font-weight-medium, 500);
+	color: var(--color-semantic-primary, #b5610f);
+	text-decoration: none;
+}
+
+::deep .gate-forgot-password:hover {
+	text-decoration: underline;
+}
+
 /* No motion introduced; focus must stay visible for every link @Body brings in (cross-links,
    forgot-password) — ::deep because those anchors live in child content, not this component. */
 ::deep a:focus-visible {

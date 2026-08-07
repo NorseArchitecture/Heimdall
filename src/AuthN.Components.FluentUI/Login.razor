@@ -13,8 +13,11 @@
 	<FluentValidator />
 	<ModelValidationSummary />
 	<FluentTextInput @bind-Value="_request.Email" Label="Email" Required="true" />
-	<FluentTextInput @bind-Value="_request.Password" TextInputType="TextInputType.Password" Label="Password" Required="true" />
-	<a class="gate-forgot-password" href="Account/ForgotPassword">Forgot password?</a>
+	<FluentTextInput @bind-Value="_request.Password" TextInputType="TextInputType.Password" Label="Password" Required="true">
+		<LabelTemplate>
+			<a class="gate-forgot-password" href="Account/ForgotPassword">Forgot password?</a>
+		</LabelTemplate>
+	</FluentTextInput>
 	<FluentCheckbox @bind-Value="_request.RememberMe" Label="Remember me" />
 	<FluentButton Type="ButtonType.Submit" Appearance="ButtonAppearance.Primary" Disabled="IsSubmitting">Log in</FluentButton>
 </EditForm>
