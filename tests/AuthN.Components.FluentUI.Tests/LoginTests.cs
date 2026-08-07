@@ -1,4 +1,5 @@
 using Bunit;
+using Bunit.TestDoubles;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.FluentUI.AspNetCore.Components;
@@ -60,7 +61,7 @@ public sealed class LoginTests : BunitContext
 		service.Login(Arg.Any<LoginRequest>(), Arg.Any<CancellationToken>())
 			.Returns(
 				_ => Task.FromResult<Outcome<LoginResult>>(new Failed(Problem.ModelError(ErrorCategory.InvalidCredentials, "Invalid email or password."))),
-				_ => Task.FromResult<Outcome<LoginResult>>(new Success<LoginResult>(new() { DeferredCompletionUrl = "/" })));
+				_ => Task.FromResult<Outcome<LoginResult>>(new Success<LoginResult>(new() { NextUrl = "/" })));
 		Services.AddSingleton(service);
 		Services.AddScoped<IValidator<LoginRequest>, LoginRequestValidator>();
 
@@ -78,6 +79,28 @@ public sealed class LoginTests : BunitContext
 		await component.Find("form").SubmitAsync();
 
 		await service.Received(2).Login(Arg.Any<LoginRequest>(), Arg.Any<CancellationToken>());
+	}
+
+	// A correct password with 2FA pending rides the SUCCESS side of the Outcome (the credential check
+	// genuinely passed) but must never be treated as a completed login. The server resolves NextUrl to
+	// the full navigation target itself (route, RememberMe query string included) -- the component
+	// neither branches on a flag nor constructs a route nor supplies a default; it just navigates to
+	// whatever URL came back.
+	[Fact]
+	void NextUrl_RoutesToTheTwoFactorChallenge_NotToACompletedLogin()
+	{
+		var service = Substitute.For<IAuthenticationService>();
+		service.Login(Arg.Any<LoginRequest>(), Arg.Any<CancellationToken>())
+			.Returns(_ => Task.FromResult<Outcome<LoginResult>>(new Success<LoginResult>(new() { NextUrl = "Account/LoginWith2fa?RememberMe=false" })));
+		Services.AddSingleton(service);
+		var navigation = Services.GetRequiredService<BunitNavigationManager>();
+
+		var component = Render<Login>();
+		FillCredentials(component);
+		component.Find("form").Submit();
+
+		navigation.Uri.ShouldBe(navigation.ToAbsoluteUri("Account/LoginWith2fa?RememberMe=false").ToString());
+		navigation.History.ShouldHaveSingleItem().Options.ForceLoad.ShouldBeTrue();
 	}
 
 	// FluentValidator blocks OnValidSubmit until Email/Password pass LoginRequestValidator's rules

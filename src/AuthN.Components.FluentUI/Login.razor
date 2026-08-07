@@ -27,7 +27,10 @@
 @code {
 	readonly LoginRequest _request = new() { Email = "", Password = "" };
 
+	// LoginResult.NextUrl is always a concrete, server-resolved value -- 2FA challenge, deferred
+	// sign-in completion, or a plain "/" -- so the component has no flag to branch on, no route to
+	// build, and no default of its own to apply.
 	Task HandleLoginAsync(EditContext editContext) =>
 		SubmitAsync(editContext, ct => AuthenticationService.Login(_request, ct),
-			result => Navigation.NavigateTo(result.DeferredCompletionUrl ?? "/", forceLoad: true));
+			result => Navigation.NavigateTo(result.NextUrl, forceLoad: true));
 }
