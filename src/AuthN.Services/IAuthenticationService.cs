@@ -28,11 +28,11 @@ public interface IAuthenticationService
 {
 	/// <summary>Authenticates a user with the provided credentials.</summary>
 	[OperationContract]
-	Task<Outcome<LoginResult>> Login(LoginRequest request, CancellationToken cancellationToken = default);
+	Task<Outcome<NavigationResult>> Login(LoginRequest request, CancellationToken cancellationToken = default);
 
 	/// <summary>Registers a new user account with the provided credentials.</summary>
 	[OperationContract]
-	Task<Outcome<RegisterResult>> Register(RegisterRequest request, CancellationToken cancellationToken = default);
+	Task<Outcome<NavigationResult>> Register(RegisterRequest request, CancellationToken cancellationToken = default);
 
 	/// <summary>Reports whether an account already exists for <paramref name="request"/>'s email.</summary>
 	[OperationContract]
@@ -46,5 +46,5 @@ public interface IAuthenticationService
 	/// information at all.
 	/// </summary>
 	[OperationContract]
-	Task<Outcome<LogoutResult>> Logout(CancellationToken cancellationToken = default);
+	Task<Outcome<NavigationResult>> Logout(CancellationToken cancellationToken = default);
 }

@@ -41,11 +41,17 @@ public sealed partial class RegisterRequestValidator : AbstractValidator<Registe
 	{
 		RuleFor(x => x.Email)
 			.Cascade(CascadeMode.Stop)
-			.NotEmpty()
-			.Must((request, _) => request.EmailParsed.TryGetValue(out Success<EmailAddress> _))
+			.Must(email => !(email.TryGetValue(out Failure failure) && failure.Reason == ParseFailure.Empty))
+			.WithMessage("Enter your email address.")
+			.WithName(nameof(RegisterRequest.EmailInput))
+			.Must(email => email.TryGetValue(out Success<EmailAddress> _))
 			.WithMessage("Enter a valid email address (local@domain.tld).")
 			.CustomAsync(async (email, context, cancellationToken) =>
 			{
+				// The rule's property IS the stamp, so it arrives proven here (the success gate sits
+				// ahead under Cascade(Stop)) and passes through verbatim — no re-parse, no second
+				// format authority; the validity gate doubles as the traffic filter, so unproven
+				// input never buys this round trip or its database query.
 				var outcome = await authenticationService.EmailExists(new() { Email = email }, cancellationToken).ConfigureAwait(false);
 				switch (outcome)
 				{

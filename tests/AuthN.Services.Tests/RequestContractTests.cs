@@ -29,7 +29,7 @@ public sealed class RequestContractTests
 	[Fact]
 	void Wire_records_carry_no_Authorize_attribute()
 	{
-		foreach (var wireType in (Type[])[typeof(LoginRequest), typeof(RegisterRequest), typeof(LoginResult), typeof(RegisterResult), typeof(LogoutResult), typeof(GetMyPersonalDataRequest), typeof(GetMaskedPersonalDataRequest), typeof(PersonalDataResponse), typeof(MaskedPersonalDataResponse), typeof(EmailExistsRequest)])
+		foreach (var wireType in (Type[])[typeof(LoginRequest), typeof(RegisterRequest), typeof(GetMyPersonalDataRequest), typeof(GetMaskedPersonalDataRequest), typeof(PersonalDataResponse), typeof(MaskedPersonalDataResponse), typeof(EmailExistsRequest)])
 			wireType.GetCustomAttribute<AuthorizeAttribute>()
 				.ShouldBeNull($"{wireType.Name} must not carry [Authorize] — that policy lives on Himinbjörg's command wrapper.");
 	}

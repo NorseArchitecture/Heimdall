@@ -9,10 +9,10 @@
 <h1>Create your account</h1>
 <p class="gate-subtitle">One identity for every realm.</p>
 
-<EditForm Model="_request" OnSubmit="HandleRegisterAsync" FormName="authn-register">
+<EditForm EditContext="EditContextFor(_request)" OnSubmit="HandleRegisterAsync" FormName="authn-register">
 	<FluentValidator AsyncMode="true" />
 	<ModelValidationSummary />
-	<FluentTextInput @bind-Value="_request.Email" Label="Email" Required="true" />
+	<FluentTextInput @bind-Value="_request.EmailInput" Label="Email" Required="true" />
 	<FluentTextInput @bind-Value="_request.Password" TextInputType="TextInputType.Password" Label="Password" Required="true" />
 	<FluentButton Type="ButtonType.Submit" Appearance="ButtonAppearance.Primary" Disabled="IsSubmitting">Create account</FluentButton>
 </EditForm>
@@ -20,7 +20,7 @@
 <p class="gate-cross-link">Already have an account? <a href="Account/Login">Log in</a></p>
 
 @code {
-	readonly RegisterRequest _request = new() { Email = "", Password = "" };
+	readonly RegisterRequest _request = new() { EmailInput = "" };
 
 	async Task HandleRegisterAsync(EditContext editContext)
 	{
@@ -28,6 +28,6 @@
 			return;
 
 		await SubmitAsync(editContext, ct => AuthenticationService.Register(_request, ct),
-			_ => Navigation.NavigateTo("/Account/Login"));
+			result => Navigation.NavigateTo(result.NextUrl, forceLoad: true));
 	}
 }
