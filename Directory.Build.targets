@@ -4,9 +4,14 @@
 	</PropertyGroup>
 	<Import Project="$(_ParentTargets)" Condition="Exists('$(_ParentTargets)')" />
 	<!--
-		The realm-root targets — the platform's first (minted 2026-08-03): law that binds src, tests,
-		and gen alike lives here exactly once, and the group-level Directory.Build.targets chain
-		through this file on their way up to Bifrost (workspace) or nowhere (standalone).
+		The realm-root targets — law that binds src, tests, gen, and schema exactly once
+		(minted 2026-08-03; widened 2026-08-07 when the NorseRef fallback and the
+		generator-strip target hoisted up from the group-level files). Group-level
+		Directory.Build.targets are chain stubs plus their layer's own subject; everything
+		shared lives here. A scattered file is canonical by definition — realm-owned law
+		never edits this file; it lives in Directory.Analyzers.props or Directory.Realm.targets
+		(both realm-owned, both unscattered — see the seam import at the bottom).
+		Doctrine: Glitnir/docs/the-runes.md.
 	-->
 	<ItemGroup>
 		<!--
@@ -43,4 +48,79 @@
 			</ItemGroup>
 		</Otherwise>
 	</Choose>
+	<!--
+		The standalone NorseRef fallback, hoisted from the src/tests/gen group files
+		(2026-08-07). Keys on Bifrost's ABSENCE, never on UseProjectReferences: in the
+		workspace, Bifrost's root Choose owns both crossings (including workspace package
+		mode, where NorseRefVersion=*-* floats prerelease) and emitting here too would
+		double-emit. Standalone splits on CPM at targets-evaluation time — the same
+		NU1008 evaluation-order law as the analyzer Choose above.
+	-->
+	<Choose>
+		<When Condition="Exists('$(_ParentTargets)')">
+			<PropertyGroup />
+		</When>
+		<When Condition="'$(ManagePackageVersionsCentrally)' == 'true'">
+			<ItemGroup>
+				<PackageReference Include="@(NorseRef->'Norse.%(Identity)')" />
+				<PackageReference Include="@(NorseDesignRef->'Norse.%(Identity)')">
+					<PrivateAssets>all</PrivateAssets>
+				</PackageReference>
+			</ItemGroup>
+		</When>
+		<Otherwise>
+			<ItemGroup>
+				<!--
+					"*" = latest released, never prerelease — CI consumes shipped stable only.
+					Library realms float deliberately: they do not own the deployed dependency
+					closure; the composition root (CPM) owns and pins it. the-runes.md ch. 6.
+				-->
+				<PackageReference Include="@(NorseRef->'Norse.%(Identity)')" Version="*" />
+				<PackageReference Include="@(NorseDesignRef->'Norse.%(Identity)')" Version="*">
+					<PrivateAssets>all</PrivateAssets>
+				</PackageReference>
+			</ItemGroup>
+		</Otherwise>
+	</Choose>
+	<!--
+		Standalone-mode realm law: the realm's own analyzer manifest, attached realm-internally.
+		Guarded to standalone twice over — the Import condition (so the workspace never imports
+		the manifest here AND via Bifrost's wildcard: MSB4011) and the ItemGroup condition (the
+		coordination law: in the workspace, Bifrost's manifest-driven block is the sole attacher).
+	-->
+	<Import Project="$(MSBuildThisFileDirectory)Directory.Analyzers.props" Condition="!Exists('$(_ParentTargets)') AND Exists('$(MSBuildThisFileDirectory)Directory.Analyzers.props')" />
+	<ItemGroup Condition="!Exists('$(_ParentTargets)') AND '$(IsAspireHost)' != 'true'">
+		<_NorseRealmAnalyzerSelf Include="@(NorseRealmAnalyzer->WithMetadataValue('FullPath', '$(MSBuildProjectFullPath)'))" />
+		<ProjectReference Include="@(NorseRealmAnalyzer)" OutputItemType="Analyzer" ReferenceOutputAssembly="false" Condition="'@(_NorseRealmAnalyzerSelf)' == ''" />
+	</ItemGroup>
+	<!--
+		The generator-strip target, hoisted from the src/tests group files (2026-08-07) so gen/
+		is covered too — the dormant-gap shape the Task 7 postmortem warns about, closed.
+		Applies whether or not Bifrost is present, and only to analyzers that arrived through
+		the NuGet package chain (NuGetPackageId metadata set) — the one mechanism that pushes a
+		generator into a compilation that didn't ask for it. An analyzer wired via
+		ProjectReference (a project's own sibling gen/ generator, Bifrost's dev-mode forwarding,
+		or the manifest attach above) is deliberate by construction and never a strip candidate.
+		Full design: Glitnir/docs/Platform/specs/2026-07-01-norseref-generator-forwarding-design.md
+		Provenance scoping: Glitnir/docs/Platform/specs/2026-07-31-norseref-strip-provenance-scoping-design.md
+	-->
+	<Target Name="_NorseRemoveUnwantedGeneratorAnalyzers" BeforeTargets="CoreCompile" Condition="'@(Analyzer)' != ''">
+		<ItemGroup>
+			<_NorseWantedGeneratorAnalyzer Include="@(NorseRef->WithMetadataValue('Generator', 'true')->'Norse.%(Identity).Generator')" />
+			<_NorseWantedGeneratorAnalyzer Include="@(NorseGeneratorRef->'Norse.%(Identity)')" />
+		</ItemGroup>
+		<PropertyGroup>
+			<_NorseWantedGeneratorAnalyzerNames>;@(_NorseWantedGeneratorAnalyzer);</_NorseWantedGeneratorAnalyzerNames>
+		</PropertyGroup>
+		<ItemGroup>
+			<Analyzer Remove="@(Analyzer)" Condition="'%(Analyzer.NuGetPackageId)' != '' and $([System.Text.RegularExpressions.Regex]::IsMatch('%(Analyzer.Filename)', '^Norse\..+\.Generator$')) and !$(_NorseWantedGeneratorAnalyzerNames.Contains(';%(Analyzer.Filename);'))" />
+		</ItemGroup>
+	</Target>
+	<!--
+		The realm seam: realm-owned, never scattered, ADDITIVE ONLY — new items and new
+		realm targets; redefining a canonical property or target here violates the
+		canonicity law. Imported last deliberately so realm additions can react to
+		canonical state — reaction is not mutation. the-runes.md ch. 7.
+	-->
+	<Import Project="$(MSBuildThisFileDirectory)Directory.Realm.targets" Condition="Exists('$(MSBuildThisFileDirectory)Directory.Realm.targets')" />
 </Project>

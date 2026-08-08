@@ -5,6 +5,11 @@
 		<Deterministic>true</Deterministic>
 		<!-- Self-certify AOT/trim at the source so violations fail here, not downstream. -->
 		<IsAotCompatible>true</IsAotCompatible>
+		<!-- Every src project ships as a NuGet package regardless of Sdk. Lives at props level
+		     deliberately: the Web/Worker SDKs' false default is Condition-on-empty, so this value
+		     survives them — unlike OutputType, whose SDK default is unconditional and can only be
+		     overridden at targets time (src/Directory.Build.targets). the-runes.md ch. 4. -->
+		<IsPackable>true</IsPackable>
 		<MinVerTagPrefix>v</MinVerTagPrefix>
 		<!-- Nothing published to NuGet should carry launch-profile scaffolding — applies platform-wide
 		     to every src/ project, not just the Microsoft.NET.Sdk.Web ones where it actually bites
