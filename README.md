@@ -8,19 +8,69 @@
 
 *Image credit: [@norsemythologyclips](https://www.instagram.com/norsemythologyclips/) — go follow them.*
 
-The authn story for the Norse Architecture — **`Norse.AuthN`**: login, register, forgot-password, 2FA setup, recovery, and reset, enforced identically across Blazor Server, WASM, and MAUI, with the backing gRPC service. Code-wise it still depends on nothing above Asgard, but since Himinbjörg's `feature/identity-web-server` merge (`v0.0.5`) the relationship between the two realms runs both ways: Himinbjörg's `Identity.Web.Server` NorseRefs this repo's `AuthN.Services` and `AuthN.Components.FluentUI` to implement the gRPC contract and host its pages, so Heimdall isn't unambiguously the topmost realm in the dependency chain anymore.
+The authn story for the Norse Architecture — **`Norse.AuthN`**: login, register, two-factor, recovery, and personal-data disclosure, enforced identically across Blazor Server, WASM, and MAUI, with the backing gRPC contracts. Heimdall rides on nothing above [Asgard](https://github.com/NorseArchitecture/Asgard); [Himinbjörg](https://github.com/NorseArchitecture/Himinbjorg) rides on *it* — implementing the contracts and hosting the pages — so the gate and the hall that stands behind it depend on each other by design.
+
+## What stands at the gate
+
+| Project | What it is |
+|---|---|
+| [`Norse.AuthN.Services`](src/AuthN.Services) | The wire tier, deliberately thin: [`IAuthenticationService`](src/AuthN.Services/IAuthenticationService.cs) (Login / Register / EmailExists / Logout) and [`IIdentityService`](src/AuthN.Services/IIdentityService.cs) (self-disclosure and masked disclosure), their pure `[DataContract]` records, and the policy name constants ([`AuthNPolicies`](src/AuthN.Services/AuthNPolicies.cs), [`IdentityPolicies`](src/AuthN.Services/IdentityPolicies.cs)). No Razor, no validation library, no mediator coupling — a consumer building their own UI references this assembly and nothing else |
+| [`Norse.AuthN.Components`](src/AuthN.Components) | The headless tier: pages with no visual framework ([Logout](src/AuthN.Components/Logout.razor), [Lockout](src/AuthN.Components/Pages/Lockout.razor), [AccessDenied](src/AuthN.Components/Pages/AccessDenied.razor), the confirmation pages), the FluentValidation validators ([login](src/AuthN.Components/LoginRequestValidator.cs), [register](src/AuthN.Components/RegisterRequestValidator.cs), [masked disclosure](src/AuthN.Components/GetMaskedPersonalDataRequestValidator.cs)), [`OutcomeFormComponentBase`](src/AuthN.Components/OutcomeFormComponentBase.cs), and the [`ServerValidation`](src/AuthN.Components/ServerValidation) machinery that projects server-side failures into the form's own validation display |
+| [`Norse.AuthN.Components.FluentUI`](src/AuthN.Components.FluentUI) | The visual skin: [`GateLayout`](src/AuthN.Components.FluentUI/GateLayout.razor), [Login](src/AuthN.Components.FluentUI/Login.razor), [Register](src/AuthN.Components.FluentUI/Register.razor), [`ModelValidationSummary`](src/AuthN.Components.FluentUI/ModelValidationSummary.razor), [PersonalData](src/AuthN.Components.FluentUI/PersonalData.razor), and [recovery codes](src/AuthN.Components.FluentUI/Shared/ShowRecoveryCodes.razor). A different design system lands as a sibling package, not an edit |
+
+## The dependency graph
+
+Arrows point at the thing depended on. Himinbjörg rides *above* the gate — implementing its contracts and hosting its pages — which is why Heimdall isn't unambiguously topmost in the chain.
+
+```mermaid
+flowchart BT
+	subgraph Himinbjorg["Himinbjörg"]
+		IdentityWebServer["Identity.Web.Server"]
+	end
+	subgraph Heimdall["Heimdall — Norse.AuthN"]
+		FluentUI["AuthN.Components.FluentUI"]
+		Components["AuthN.Components"]
+		Services["AuthN.Services"]
+	end
+	subgraph Asgard["Asgard"]
+		AComponents["Abstractions.Components"]
+		Contracts["Abstractions.Contracts"]
+	end
+	subgraph Svartalfheim["Svartálfheim"]
+		Primitives["Norse.Primitives"]
+	end
+	IdentityWebServer --> FluentUI
+	FluentUI --> Components
+	Components --> Services
+	Components --> AComponents
+	Services --> Contracts
+	Contracts --> Primitives
+```
+
+Dependencies are transitive-first by house law — `Norse.Primitives` reaches the wire records through `Abstractions.Contracts`, so no direct edge exists; versions are managed in one place, and the hosting composition root (Yggdrasil) pins the entire closure explicitly for deterministic builds and a single place to fix a vulnerable package. The one sanctioned break rides in `AuthN.Services.csproj` today: a direct floated `System.Security.Cryptography.Xml` overriding the known-vulnerable transitive version hosted by `System.ServiceModel.Primitives`.
+
+## How the gate works
+
+The components never know what transport they're standing on. They inject the contract (`IAuthenticationService`), consume `Task<Outcome<T>>`, and pattern-match the result — success navigates, failure renders through the same validation display as client-side errors. Which implementation stands behind the contract is a per-host DI decision: Himinbjörg registers the real thing for Blazor Server, Yggdrasil wires the generated gRPC-Web client for WASM, and [Bragi](https://github.com/NorseArchitecture/Bragi)'s story catalog registers a scripted fake. One component, three worlds, zero `#if`.
+
+Validation is declared once and enforced twice: the same validator class runs client-side (Blazilla, against the wire record directly) and server-side (through Himinbjörg's generated adapter) — one declaration, never duplicated, so the two tiers cannot drift. And the wire records themselves are kept deliberately dumb: no authorization attributes, no mediator markers — a rejected login comes back as a typed failure (`Failed(Problem)`), never as a success record with a false flag, and `LoginResult` is just the single server-resolved URL of wherever the gate says you go next (return URL, 2FA challenge, lockout).
+
+## Build and test
+
+```shell
+dotnet build Heimdall.slnx   # warnings are errors — a single warning fails
+dotnet test Heimdall.slnx    # xUnit v3 + Shouldly on Microsoft.Testing.Platform
+```
+
+Requires the .NET 11 preview SDK pinned by `global.json`. The realm builds standalone — it is its own clone target, not only a Bifröst submodule. `RequestContractTests` is the wire tier's purity lock: no `[Authorize]` on wire records, no mediator-law assembly reference, a trailing `CancellationToken` on every service method.
 
 ## Status
 
-`AuthN.Components`, `AuthN.Components.FluentUI`, and `AuthN.Services` are live — the Himinbjörg→Heimdall component migration moved the injection-clean subset (Login, Register, Logout, and their validators/requests) over mechanically; components with real backend injections (`UserManager`/`SignInManager`/`HttpContext`) still live on Himinbjörg's side, in `Identity.Web.Server`'s `Components/Pages/**` tree — that branch merged to Himinbjörg's `master` (tagged `v0.0.5`) and the gRPC wireup it was pending on is done, so what remains is only migrating that page tree over here. `AuthN.Services` was carved out of `AuthN.Components` to isolate `IAuthenticationService` (the gRPC contract) and its wire records (`LoginRequest`, `RegisterRequest`, `LoginResult`, `RegisterResult`, `LogoutResult`) from Razor/FluentValidation/Blazilla — a consumer building their own UI on the contract references only this thin assembly and wires it to whatever backend they choose. The hand-written `IAuthenticationGateway`/`AuthenticationResult` are retired (both interface and wrapper gone as of Asgard commit 5f06a88 which deleted `[GenerateGateway]`, `GatewayGenerator`, and all emission modes entirely). Login/Register/Logout.razor inject `IAuthenticationService` directly — the transport-dumb seam is DI substitution per host: Himinbjörg's `Identity.Web.Server` registers this repo's `AuthenticationService` implementation for Blazor Server; Yggdrasil (via Midgard) registers the generated gRPC client wiring for WASM. Components consume `Task<Outcome<T>>` and pattern-match the result; there is no more `AuthenticationResult` wrapper anywhere. Himinbjörg's and Yggdrasil's consuming code has already been updated to the split `Norse.AuthN.Components`/`Norse.AuthN.Services` namespaces. Pages still carry the ASP.NET Identity scaffold's `/Account/*` routes deliberately — renaming them is a separate, deferred curation pass. Design for what's next happens first: brainstorm → spec → plan, recorded in Glitnir's `docs/Heimdall/`, before any further project is scaffolded here.
-
-**Wire purity is now the ruled shape (2026-07-27):** `LoginRequest`/`RegisterRequest` carry no mediator marker and no `[Authorize]` at all — pure `[DataContract]` shapes, nothing more. `LogoutRequest` is gone entirely; `IAuthenticationService.Logout` is a `CancellationToken`-only operation (protobuf-net.Grpc supports this end to end, spike-verified against a real `TestServer`/HTTP-2 round trip). `Register` now returns `Task<Outcome<RegisterResult>>` (a new bare-`Succeeded` wire record) instead of `Task<Outcome<Unit>>`. Mediator identity and authorization policy live entirely server-side now, on Himinbjörg's `LoginCommand`/`RegisterCommand`/`LogoutCommand` — thin wrappers over these same wire records (Asgard's `CommandRequest<TRequest,TResponse>`). `LoginRequestValidator`/`RegisterRequestValidator` in this repo are the single source of validation truth for both tiers: Blazilla runs them client-side against the wire type directly, and Himinbjörg's generated `CommandRequestValidator<TCommand,TRequest,TResponse>` adapter reaches through the wrapper and runs the exact same classes again server-side — one declaration, never duplicated.
-
-**Disclosure contract landed 2026-08-04 (Task 19a):** `AuthN.Services` now also carries `IIdentityService` (`grpc.identity.v1.IdentityService`) beside `IAuthenticationService` — self-disclosure (`GetMyPersonalDataAsync`, full and unmasked) and masked second-party disclosure (`GetMaskedPersonalDataAsync`), plus `IdentityPolicies` (`Self`/`MaskedDisclosure`/`SystemRole` — names only; registration happens at the consuming host's composition root, Yggdrasil's `Hosting.Web.Server`, beside `AuthNPolicies.Public` — not Himinbjörg, whose command wrappers only name the policies via `[Authorize]`). `GetMaskedPersonalDataRequestValidator` joins the login/register validators in `AuthN.Components`. `PersonalData.razor` ports over from Himinbjörg in the same slice, injection-clean of server types (three injections — `IIdentityService`, `NavigationManager`, `IJSRuntime` for the download — zero `UserManager`/`HttpContext`/`IdentityRedirectManager` coupling): the Download button is now a gRPC call, saved client-side via a small JS module in `AuthN.Components.FluentUI/wwwroot/` (its reference cached and disposed via `IAsyncDisposable`, not re-imported per click); the delete link is a plain relative `Href="Account/Manage/DeletePersonalData"`, same as the Himinbjörg original, and still points there since that page stays put (its delete semantics become the shred ceremony instead). Himinbjörg's `NorseRef` on this package floats on `Version="*"`, so this ships and publishes before Himinbjörg's server-side handlers (Task 19b) can compile against it.
+The injection-clean pages live here; pages still coupled to server types (`UserManager`, `HttpContext`) remain in Himinbjörg's `Identity.Web.Server` and migrate over as they come clean — placement is a rule, not a list. Pages keep the ASP.NET Identity scaffold's `/Account/*` routes deliberately; renaming is a separate, deferred curation pass. Design for anything new happens first in [Glitnir](https://github.com/NorseArchitecture/Glitnir)'s [docs/Heimdall/](https://github.com/NorseArchitecture/Glitnir/tree/master/docs/Heimdall) — brainstorm → spec → plan, before any code.
 
 ## The cosmos
 
-Heimdall is one realm of the [Norse Architecture](https://github.com/NorseArchitecture). The whole platform composes at [Bifröst](https://github.com/NorseArchitecture/Bifrost) — clone once, cross the bridge, and every session starts there so decisions get brainstormed across the entire landscape, not in isolation. Every design is tried in [Glitnir](https://github.com/NorseArchitecture/Glitnir), the design court, before code is forged here; this realm's specs and plans will live in the court's [docs/Heimdall/](https://github.com/NorseArchitecture/Glitnir/tree/master/docs/Heimdall) once they converge.
+Heimdall is one realm of the [Norse Architecture](https://github.com/NorseArchitecture). The whole platform composes at [Bifröst](https://github.com/NorseArchitecture/Bifrost) — clone once, cross the bridge. Every design is tried in [Glitnir](https://github.com/NorseArchitecture/Glitnir), the design court, before code is forged here.
 
 ## Soundtrack: Gjallarhorn
 [![Soundtrack: Gjallarhorn](https://img.youtube.com/vi/-Y0OKTuMICM/maxresdefault.jpg)](https://www.youtube.com/watch?v=-Y0OKTuMICM)
