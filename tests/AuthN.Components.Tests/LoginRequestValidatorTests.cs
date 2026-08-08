@@ -9,7 +9,7 @@ public sealed class LoginRequestValidatorTests
 	[Fact]
 	void Rejects_empty_email()
 	{
-		LoginRequest request = new() { Email = "", Password = "correct-horse" };
+		LoginRequest request = new() { EmailInput = "", Password = "correct-horse" };
 
 		var result = _validator.Validate(request);
 
@@ -19,7 +19,7 @@ public sealed class LoginRequestValidatorTests
 	[Fact]
 	void Rejects_malformed_email()
 	{
-		LoginRequest request = new() { Email = "not-an-email", Password = "correct-horse" };
+		LoginRequest request = new() { EmailInput = "not-an-email", Password = "correct-horse" };
 
 		var result = _validator.Validate(request);
 
@@ -29,7 +29,7 @@ public sealed class LoginRequestValidatorTests
 	[Fact]
 	void Rejects_empty_password()
 	{
-		LoginRequest request = new() { Email = "user@example.com", Password = "" };
+		LoginRequest request = new() { EmailInput = "user@example.com", Password = "" };
 
 		var result = _validator.Validate(request);
 
@@ -39,7 +39,7 @@ public sealed class LoginRequestValidatorTests
 	[Fact]
 	void Accepts_a_well_formed_request()
 	{
-		LoginRequest request = new() { Email = "user@example.com", Password = "correct-horse" };
+		LoginRequest request = new() { EmailInput = "user@example.com", Password = "correct-horse" };
 
 		var result = _validator.Validate(request);
 

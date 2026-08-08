@@ -16,7 +16,7 @@
 		// usefully recover, matching this component's pre-existing lack of any error-display path.
 		var url = outcome switch
 		{
-			Success<LogoutResult>(var logoutResult) => logoutResult.DeferredCompletionUrl ?? "/",
+			Success<NavigationResult>(var result) => result.NextUrl,
 			Failed => "/",
 		};
 		Navigation.NavigateTo(url, forceLoad: true);

@@ -16,7 +16,7 @@ public sealed class RegisterRequestValidatorAsyncTests
 	}
 
 	static RegisterRequest ValidRequest() =>
-		new() { Email = "gyal@example.com", Password = "correct horse battery" };
+		new() { EmailInput = "gyal@example.com", Password = "correct horse battery" };
 
 	[Fact]
 	async Task An_existing_email_fails_the_email_field()
@@ -53,7 +53,7 @@ public sealed class RegisterRequestValidatorAsyncTests
 	{
 		var service = Substitute.For<IAuthenticationService>();
 		RegisterRequestValidator validator = new(service, NullLogger<RegisterRequestValidator>.Instance);
-		RegisterRequest request = new() { Email = "not-an-email", Password = "correct horse battery" };
+		RegisterRequest request = new() { EmailInput = "not-an-email", Password = "correct horse battery" };
 
 		await validator.ValidateAsync(request, TestContext.Current.CancellationToken);
 

@@ -23,7 +23,7 @@ public sealed class RegisterRequestValidatorTests
 	async Task Rejects_malformed_email()
 	{
 		var validator = NewValidator();
-		RegisterRequest request = new() { Email = "not-an-email", Password = "correct-horse-battery" };
+		RegisterRequest request = new() { EmailInput = "not-an-email", Password = "correct-horse-battery" };
 
 		var result = await validator.ValidateAsync(request, TestContext.Current.CancellationToken);
 
@@ -34,7 +34,7 @@ public sealed class RegisterRequestValidatorTests
 	async Task Rejects_password_shorter_than_eight_characters()
 	{
 		var validator = NewValidator();
-		RegisterRequest request = new() { Email = "user@example.com", Password = "short" };
+		RegisterRequest request = new() { EmailInput = "user@example.com", Password = "short" };
 
 		var result = await validator.ValidateAsync(request, TestContext.Current.CancellationToken);
 
@@ -45,7 +45,7 @@ public sealed class RegisterRequestValidatorTests
 	async Task Accepts_a_well_formed_request()
 	{
 		var validator = NewValidator();
-		RegisterRequest request = new() { Email = "user@example.com", Password = "correct-horse-battery" };
+		RegisterRequest request = new() { EmailInput = "user@example.com", Password = "correct-horse-battery" };
 
 		var result = await validator.ValidateAsync(request, TestContext.Current.CancellationToken);
 

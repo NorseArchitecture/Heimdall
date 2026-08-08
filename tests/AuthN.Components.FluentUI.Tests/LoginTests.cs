@@ -25,7 +25,7 @@ public sealed class LoginTests : BunitContext
 	{
 		var service = Substitute.For<IAuthenticationService>();
 		service.Login(Arg.Any<LoginRequest>(), Arg.Any<CancellationToken>())
-			.Returns(_ => Task.FromResult<Outcome<LoginResult>>(new Failed(Problem.ModelError(ErrorCategory.InvalidCredentials, "Invalid email or password."))));
+			.Returns(_ => Task.FromResult<Outcome<NavigationResult>>(new Failed(Problem.ModelError(ErrorCategory.InvalidCredentials, "Invalid email or password."))));
 		Services.AddSingleton(service);
 
 		var component = Render<Login>();
@@ -40,7 +40,7 @@ public sealed class LoginTests : BunitContext
 	{
 		var service = Substitute.For<IAuthenticationService>();
 		service.Login(Arg.Any<LoginRequest>(), Arg.Any<CancellationToken>())
-			.Returns(_ => Task.FromResult<Outcome<LoginResult>>(new Failed(Problem.ModelError(ErrorCategory.LockedOut, "Your account is locked. Try again in 15 minutes."))));
+			.Returns(_ => Task.FromResult<Outcome<NavigationResult>>(new Failed(Problem.ModelError(ErrorCategory.LockedOut, "Your account is locked. Try again in 15 minutes."))));
 		Services.AddSingleton(service);
 
 		var component = Render<Login>();
@@ -60,8 +60,8 @@ public sealed class LoginTests : BunitContext
 		var service = Substitute.For<IAuthenticationService>();
 		service.Login(Arg.Any<LoginRequest>(), Arg.Any<CancellationToken>())
 			.Returns(
-				_ => Task.FromResult<Outcome<LoginResult>>(new Failed(Problem.ModelError(ErrorCategory.InvalidCredentials, "Invalid email or password."))),
-				_ => Task.FromResult<Outcome<LoginResult>>(new Success<LoginResult>(new() { NextUrl = "/" })));
+				_ => Task.FromResult<Outcome<NavigationResult>>(new Failed(Problem.ModelError(ErrorCategory.InvalidCredentials, "Invalid email or password."))),
+				_ => Task.FromResult<Outcome<NavigationResult>>(new Success<NavigationResult>(new() { NextUrl = "/" })));
 		Services.AddSingleton(service);
 		Services.AddScoped<IValidator<LoginRequest>, LoginRequestValidator>();
 
@@ -91,7 +91,7 @@ public sealed class LoginTests : BunitContext
 	{
 		var service = Substitute.For<IAuthenticationService>();
 		service.Login(Arg.Any<LoginRequest>(), Arg.Any<CancellationToken>())
-			.Returns(_ => Task.FromResult<Outcome<LoginResult>>(new Success<LoginResult>(new() { NextUrl = "Account/LoginWith2fa?RememberMe=false" })));
+			.Returns(_ => Task.FromResult<Outcome<NavigationResult>>(new Success<NavigationResult>(new() { NextUrl = "Account/LoginWith2fa?RememberMe=false" })));
 		Services.AddSingleton(service);
 		var navigation = Services.GetRequiredService<BunitNavigationManager>();
 

@@ -9,10 +9,10 @@
 <h1>Log in</h1>
 <p class="gate-subtitle">Welcome back to the bridge.</p>
 
-<EditForm Model="_request" OnValidSubmit="HandleLoginAsync" FormName="authn-login">
+<EditForm EditContext="EditContextFor(_request)" OnValidSubmit="HandleLoginAsync" FormName="authn-login">
 	<FluentValidator />
 	<ModelValidationSummary />
-	<FluentTextInput @bind-Value="_request.Email" Label="Email" Required="true" />
+	<FluentTextInput @bind-Value="_request.EmailInput" Label="Email" Required="true" />
 	<FluentTextInput @bind-Value="_request.Password" TextInputType="TextInputType.Password" Label="Password" Required="true">
 		<LabelTemplate>
 			<a class="gate-forgot-password" href="Account/ForgotPassword">Forgot password?</a>
@@ -25,9 +25,9 @@
 <p class="gate-cross-link">New here? <a href="Account/Register">Create an account</a></p>
 
 @code {
-	readonly LoginRequest _request = new() { Email = "", Password = "" };
+	readonly LoginRequest _request = new() { EmailInput = "" };
 
-	// LoginResult.NextUrl is always a concrete, server-resolved value -- 2FA challenge, deferred
+	// NavigationResult.NextUrl is always a concrete, server-resolved value -- 2FA challenge, deferred
 	// sign-in completion, or a plain "/" -- so the component has no flag to branch on, no route to
 	// build, and no default of its own to apply.
 	Task HandleLoginAsync(EditContext editContext) =>
