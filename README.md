@@ -39,7 +39,6 @@ flowchart BT
 	subgraph Svartalfheim["Svartálfheim"]
 		Primitives["Norse.Primitives"]
 	end
-	IdentityWebServer --> Services
 	IdentityWebServer --> FluentUI
 	FluentUI --> Components
 	Components --> Services
