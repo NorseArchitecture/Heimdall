@@ -6,9 +6,6 @@
 		<NorseRef Include="Abstractions.Contracts">
 			<Repo>Asgard</Repo>
 		</NorseRef>
-		<NorseRef Include="Primitives">
-			<Repo>Svartalfheim</Repo>
-		</NorseRef>
 		<PackageReference Include="Microsoft.AspNetCore.Authorization" Version="11.*-*" />
 		<!-- Overrides a known-vulnerable transitive version pulled in by System.ServiceModel.Primitives. -->
 		<PackageReference Include="System.Security.Cryptography.Xml" Version="11.*-*" />
