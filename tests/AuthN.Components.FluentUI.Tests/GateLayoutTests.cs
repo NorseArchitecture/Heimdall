@@ -83,7 +83,8 @@ public sealed class GateLayoutTests : BunitContext
 	{
 		var service = Substitute.For<IAuthenticationService>();
 		Services.AddSingleton(service);
-		Services.AddScoped<IValidator<RegisterRequest>>(_ => new RegisterRequestValidator(service, NullLogger<RegisterRequestValidator>.Instance));
+		Services.AddScoped<IValidator<RegisterRequest>>(_ =>
+			new RegisterRequestValidator(service, NullLogger<RegisterRequestValidator>.Instance));
 
 		var component = Render<Register>();
 
@@ -94,5 +95,6 @@ public sealed class GateLayoutTests : BunitContext
 	}
 
 	IRenderedComponent<GateLayout> RenderGate() =>
-		Render<GateLayout>(parameters => parameters.Add(p => p.Body, (RenderFragment)(builder => builder.AddContent(0, "gate-body-marker"))));
+		Render<GateLayout>(parameters =>
+			parameters.Add(p => p.Body, (RenderFragment)(builder => builder.AddContent(0, "gate-body-marker"))));
 }

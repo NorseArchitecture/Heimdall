@@ -3,9 +3,9 @@ using System.Runtime.Serialization;
 namespace Norse.AuthN.Services;
 
 /// <summary>
-/// The full, unmasked wire response for <see cref="IIdentityService.GetMyPersonalDataAsync"/> —
-/// self-disclosure only, gated by <see cref="IdentityPolicies.Self"/>. Both members are canonical
-/// wire strings, never the underlying PII primitive itself (spec §1.5).
+///     The full, unmasked wire response for <see cref="IIdentityService.GetMyPersonalDataAsync" /> —
+///     self-disclosure only, gated by <see cref="IdentityPolicies.Self" />. Both members are canonical
+///     wire strings, never the underlying PII primitive itself (spec §1.5).
 /// </summary>
 [DataContract]
 public sealed record PersonalDataResponse

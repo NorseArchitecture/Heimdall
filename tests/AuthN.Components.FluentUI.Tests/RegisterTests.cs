@@ -31,10 +31,13 @@ public sealed class RegisterTests : BunitContext
 			.Returns(_ => Task.FromResult<Outcome<BoolResponse>>(new Success<BoolResponse>(new() { Value = false })));
 		service.Register(Arg.Any<RegisterRequest>(), Arg.Any<CancellationToken>())
 			.Returns(
-				_ => Task.FromResult<Outcome<NavigationResult>>(new Failed(Problem.ModelError(ErrorCategory.Conflict, "This email is already registered."))),
-				_ => Task.FromResult<Outcome<NavigationResult>>(new Success<NavigationResult>(new() { NextUrl = "/Account/Login" })));
+				_ => Task.FromResult<Outcome<NavigationResult>>(
+					new Failed(Problem.ModelError(ErrorCategory.Conflict, "This email is already registered."))),
+				_ => Task.FromResult<Outcome<NavigationResult>>(
+					new Success<NavigationResult>(new() { NextUrl = "/Account/Login" })));
 		Services.AddSingleton(service);
-		Services.AddScoped<IValidator<RegisterRequest>>(_ => new RegisterRequestValidator(service, NullLogger<RegisterRequestValidator>.Instance));
+		Services.AddScoped<IValidator<RegisterRequest>>(_ =>
+			new RegisterRequestValidator(service, NullLogger<RegisterRequestValidator>.Instance));
 
 		var component = Render<Register>();
 		var inputs = component.FindAll("fluent-text-input");
@@ -67,9 +70,12 @@ public sealed class RegisterTests : BunitContext
 		service.EmailExists(Arg.Any<EmailExistsRequest>(), Arg.Any<CancellationToken>())
 			.Returns(_ => Task.FromResult<Outcome<BoolResponse>>(new Success<BoolResponse>(new() { Value = false })));
 		service.Register(Arg.Any<RegisterRequest>(), Arg.Any<CancellationToken>())
-			.Returns(_ => Task.FromResult<Outcome<NavigationResult>>(new Success<NavigationResult>(new() { NextUrl = "/Account/Login" })));
+			.Returns(_ =>
+				Task.FromResult<Outcome<NavigationResult>>(
+					new Success<NavigationResult>(new() { NextUrl = "/Account/Login" })));
 		Services.AddSingleton(service);
-		Services.AddScoped<IValidator<RegisterRequest>>(_ => new RegisterRequestValidator(service, NullLogger<RegisterRequestValidator>.Instance));
+		Services.AddScoped<IValidator<RegisterRequest>>(_ =>
+			new RegisterRequestValidator(service, NullLogger<RegisterRequestValidator>.Instance));
 
 		var component = Render<Register>();
 		var inputs = component.FindAll("fluent-text-input");

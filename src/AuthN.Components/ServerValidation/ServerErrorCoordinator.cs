@@ -4,11 +4,11 @@ using Norse.Abstractions.Contracts;
 namespace Norse.AuthN.Components.ServerValidation;
 
 /// <summary>
-/// Owns the server-produced <see cref="ValidationMessageStore"/> for one <see cref="EditContext"/>,
-/// plus the two subscriptions that make resubmission possible: field edits clear that field's server
-/// messages, and any fresh validation pass clears them all. Without the second subscription a stale
-/// server message keeps <see cref="EditContext.Validate"/> false forever and the valid-submit
-/// handler can never run again — the live defect the hand-rolled components carried.
+///     Owns the server-produced <see cref="ValidationMessageStore" /> for one <see cref="EditContext" />,
+///     plus the two subscriptions that make resubmission possible: field edits clear that field's server
+///     messages, and any fresh validation pass clears them all. Without the second subscription a stale
+///     server message keeps <see cref="EditContext.Validate" /> false forever and the valid-submit
+///     handler can never run again — the live defect the hand-rolled components carried.
 /// </summary>
 sealed class ServerErrorCoordinator
 {

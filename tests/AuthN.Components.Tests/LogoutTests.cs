@@ -28,7 +28,11 @@ public sealed class LogoutTests : BunitContext
 	{
 		var service = Substitute.For<IAuthenticationService>();
 		service.Logout(Arg.Any<CancellationToken>())
-			.Returns(_ => Task.FromResult(Outcome<NavigationResult>.Ok(new NavigationResult { NextUrl = "/_auth/complete?key=abc&returnUrl=%2F" })));
+			.Returns(_ =>
+				Task.FromResult(Outcome<NavigationResult>.Ok(new NavigationResult
+				{
+					NextUrl = "/_auth/complete?key=abc&returnUrl=%2F"
+				})));
 		Services.AddSingleton(service);
 		var navigation = Services.GetRequiredService<BunitNavigationManager>();
 

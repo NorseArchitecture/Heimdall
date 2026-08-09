@@ -10,24 +10,25 @@
 <p class="gate-subtitle">One identity for every realm.</p>
 
 <EditForm EditContext="EditContextFor(_request)" OnSubmit="HandleRegisterAsync" FormName="authn-register">
-	<FluentValidator AsyncMode="true" />
-	<ModelValidationSummary />
-	<FluentTextInput @bind-Value="_request.EmailInput" Label="Email" Required="true" />
-	<FluentTextInput @bind-Value="_request.Password" TextInputType="TextInputType.Password" Label="Password" Required="true" />
-	<FluentButton Type="ButtonType.Submit" Appearance="ButtonAppearance.Primary" Disabled="IsSubmitting">Create account</FluentButton>
+    <FluentValidator AsyncMode="true"/>
+    <ModelValidationSummary/>
+    <FluentTextInput @bind-Value="_request.EmailInput" Label="Email" Required="true"/>
+    <FluentTextInput @bind-Value="_request.Password" TextInputType="TextInputType.Password" Label="Password" Required="true"/>
+    <FluentButton Type="ButtonType.Submit" Appearance="ButtonAppearance.Primary" Disabled="IsSubmitting">Create account</FluentButton>
 </EditForm>
 
 <p class="gate-cross-link">Already have an account? <a href="Account/Login">Log in</a></p>
 
 @code {
-	readonly RegisterRequest _request = new() { EmailInput = "" };
+    readonly RegisterRequest _request = new() { EmailInput = "" };
 
-	async Task HandleRegisterAsync(EditContext editContext)
-	{
-		if (!await editContext.ValidateAsync())
-			return;
+    async Task HandleRegisterAsync(EditContext editContext)
+    {
+        if (!await editContext.ValidateAsync())
+            return;
 
-		await SubmitAsync(editContext, ct => AuthenticationService.Register(_request, ct),
-			result => Navigation.NavigateTo(result.NextUrl, forceLoad: true));
-	}
+        await SubmitAsync(editContext, ct => AuthenticationService.Register(_request, ct),
+            result => Navigation.NavigateTo(result.NextUrl, forceLoad: true));
+    }
+
 }

@@ -3,10 +3,10 @@ using System.Runtime.Serialization;
 namespace Norse.AuthN.Services;
 
 /// <summary>
-/// The masked wire response for <see cref="IIdentityService.GetMaskedPersonalDataAsync"/> —
-/// second-party disclosure, gated by <see cref="IdentityPolicies.MaskedDisclosure"/>. The same two
-/// members as <see cref="PersonalDataResponse"/>, always masked at the source — the endpoint
-/// chooses masked, it never authors a mask (spec §6).
+///     The masked wire response for <see cref="IIdentityService.GetMaskedPersonalDataAsync" /> —
+///     second-party disclosure, gated by <see cref="IdentityPolicies.MaskedDisclosure" />. The same two
+///     members as <see cref="PersonalDataResponse" />, always masked at the source — the endpoint
+///     chooses masked, it never authors a mask (spec §6).
 /// </summary>
 [DataContract]
 public sealed record MaskedPersonalDataResponse

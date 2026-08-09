@@ -2,14 +2,14 @@
 @using Norse.AuthN.Components.FluentUI
 
 <CascadingValue Value="Context">
-	<ModelValidationSummary />
+    <ModelValidationSummary/>
 </CascadingValue>
 
 @code {
-	// Test-only host: cascades EditContext through a plain component parameter so a test
-	// can swap the cascaded value on a live instance (via bUnit's Render(parameterBuilder))
-	// without remounting ModelValidationSummary — mirroring how a real EditForm ancestor
-	// replaces its EditContext parameter across re-renders.
-	[Parameter, EditorRequired]
-	public EditContext Context { get; set; } = null!;
+
+    // Test-only host: cascades EditContext through a plain component parameter so a test
+    // can swap the cascaded value on a live instance (via bUnit's Render(parameterBuilder))
+    // without remounting ModelValidationSummary — mirroring how a real EditForm ancestor
+    // replaces its EditContext parameter across re-renders.
+    [Parameter] [EditorRequired] public EditContext Context { get; set; } = null!;
 }

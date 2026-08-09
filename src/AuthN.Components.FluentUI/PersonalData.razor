@@ -45,11 +45,11 @@
     }
 
     /// <summary>
-    /// Disposes the cached JS module reference. Implementing <see cref="IAsyncDisposable"/> on a
-    /// component that also inherits <see cref="AsyncComponentBase"/>'s synchronous <c>IDisposable</c>
-    /// means the framework calls only this overload, never the base's — so the base's own
-    /// <c>Dispose()</c> (which cancels/disposes its <see cref="CancellationToken"/> source) is
-    /// invoked explicitly here, or it would silently stop running at all.
+    ///     Disposes the cached JS module reference. Implementing <see cref="IAsyncDisposable" /> on a
+    ///     component that also inherits <see cref="AsyncComponentBase" />'s synchronous <c>IDisposable</c>
+    ///     means the framework calls only this overload, never the base's — so the base's own
+    ///     <c>Dispose()</c> (which cancels/disposes its <see cref="CancellationToken" /> source) is
+    ///     invoked explicitly here, or it would silently stop running at all.
     /// </summary>
     public async ValueTask DisposeAsync()
     {
@@ -57,4 +57,5 @@
             await _module.DisposeAsync();
         Dispose();
     }
+
 }

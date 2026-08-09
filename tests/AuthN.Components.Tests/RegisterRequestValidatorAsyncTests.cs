@@ -41,7 +41,8 @@ public sealed class RegisterRequestValidatorAsyncTests
 	[Fact]
 	async Task A_failed_lookup_blocks_with_a_could_not_verify_error()
 	{
-		var validator = NewValidator(new Failed(new() { Category = ErrorCategory.Fault, CorrelationId = Guid.NewGuid() }));
+		var validator =
+			NewValidator(new Failed(new() { Category = ErrorCategory.Fault, CorrelationId = Guid.NewGuid() }));
 
 		var result = await validator.ValidateAsync(ValidRequest(), TestContext.Current.CancellationToken);
 

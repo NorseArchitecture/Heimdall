@@ -8,8 +8,6 @@ namespace Norse.AuthN.Components.FluentUI.Tests;
 
 public sealed class ModelValidationSummaryTests : BunitContext
 {
-	sealed record FakeModel;
-
 	public ModelValidationSummaryTests()
 	{
 		Services.AddFluentUIComponents();
@@ -73,7 +71,8 @@ public sealed class ModelValidationSummaryTests : BunitContext
 		EditContext context = new(model);
 		var component = Render(context);
 		await component.InvokeAsync(() =>
-			context.ApplyServerErrors(Problem.ModelError(ErrorCategory.InvalidCredentials, "Invalid email or password.")));
+			context.ApplyServerErrors(
+				Problem.ModelError(ErrorCategory.InvalidCredentials, "Invalid email or password.")));
 		component.Markup.ShouldContain("Invalid email or password.");
 
 		// no Blazilla in this form — the coordinator's own notification must drive the re-render
@@ -131,4 +130,6 @@ public sealed class ModelValidationSummaryTests : BunitContext
 		component.Markup.ShouldNotContain("From A again.");
 		component.Markup.ShouldContain("From B.");
 	}
+
+	sealed record FakeModel;
 }

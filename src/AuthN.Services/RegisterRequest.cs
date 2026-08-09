@@ -4,7 +4,10 @@ using Norse.Primitives.Pii;
 
 namespace Norse.AuthN.Services;
 
-/// <summary>Deliberately mutable — see <see cref="LoginRequest" />'s remark. A pure wire DTO, same as <see cref="LoginRequest" />.</summary>
+/// <summary>
+///     Deliberately mutable — see <see cref="LoginRequest" />'s remark. A pure wire DTO, same as
+///     <see cref="LoginRequest" />.
+/// </summary>
 [DataContract]
 public sealed record RegisterRequest
 {

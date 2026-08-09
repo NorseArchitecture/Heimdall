@@ -3,16 +3,16 @@ using Norse.Abstractions.Contracts;
 namespace Norse.AuthN.Components.ServerValidation;
 
 /// <summary>
-/// Renders a generic, category-appropriate sentence for a <see cref="Problem"/> that carries no
-/// field-keyed messages — a model-level failure with nothing more specific to say (e.g.
-/// <see cref="ErrorCategory.Forbidden"/>, <see cref="ErrorCategory.Fault"/>).
+///     Renders a generic, category-appropriate sentence for a <see cref="Problem" /> that carries no
+///     field-keyed messages — a model-level failure with nothing more specific to say (e.g.
+///     <see cref="ErrorCategory.Forbidden" />, <see cref="ErrorCategory.Fault" />).
 /// </summary>
 static class CategoryDisplay
 {
 	/// <summary>
-	/// Returns the display sentence for <paramref name="problem"/>'s category, appending a
-	/// correlation reference when one is present — always for <see cref="ErrorCategory.Fault"/>,
-	/// which never reaches a user without a trace handle to hand a support agent.
+	///     Returns the display sentence for <paramref name="problem" />'s category, appending a
+	///     correlation reference when one is present — always for <see cref="ErrorCategory.Fault" />,
+	///     which never reaches a user without a trace handle to hand a support agent.
 	/// </summary>
 	/// <param name="problem">The problem to render a sentence for.</param>
 	internal static string For(Problem problem)
@@ -29,11 +29,11 @@ static class CategoryDisplay
 			ErrorCategory.Forbidden => "You don't have permission to do this.",
 			ErrorCategory.MultipleMatches => "More than one match was found.",
 			ErrorCategory.Erased => "This record no longer exists.",
-			_ => "Something went wrong.",
+			_ => "Something went wrong."
 		};
 
-		return problem.CorrelationId is { } correlationId
-			? $"{sentence} Reference: {correlationId}"
-			: sentence;
+		return problem.CorrelationId is { } correlationId ?
+			$"{sentence} Reference: {correlationId}" :
+			sentence;
 	}
 }

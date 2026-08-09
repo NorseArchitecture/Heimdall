@@ -7,20 +7,6 @@ namespace Norse.AuthN.Components.Tests;
 
 public sealed class OutcomeFormComponentBaseTests
 {
-	sealed record FakeResult;
-
-	sealed class Harness : OutcomeFormComponentBase
-	{
-		internal Task Submit<T>(EditContext editContext, Func<CancellationToken, Task<Outcome<T>>> call, Action<T> onSuccess) where T : notnull =>
-			SubmitAsync(editContext, call, onSuccess);
-
-		internal EditContext ContextFor(object request) =>
-			EditContextFor(request);
-
-		internal bool Submitting =>
-			IsSubmitting;
-	}
-
 	[Fact]
 	async Task Success_invokes_the_continuation_and_clears_server_errors()
 	{
@@ -29,7 +15,8 @@ public sealed class OutcomeFormComponentBaseTests
 		context.ApplyServerErrors(Problem.ModelError(ErrorCategory.InvalidCredentials, "Stale."));
 		var invoked = false;
 
-		await harness.Submit(context, _ => Task.FromResult<Outcome<FakeResult>>(new Success<FakeResult>(new())), _ => invoked = true);
+		await harness.Submit(context, _ => Task.FromResult<Outcome<FakeResult>>(new Success<FakeResult>(new())),
+			_ => invoked = true);
 
 		invoked.ShouldBeTrue();
 		context.GetValidationMessages().ShouldBeEmpty();
@@ -44,7 +31,8 @@ public sealed class OutcomeFormComponentBaseTests
 		var invoked = false;
 
 		await harness.Submit(context,
-			_ => Task.FromResult<Outcome<FakeResult>>(new Failed(Problem.ModelError(ErrorCategory.LockedOut, "Locked."))),
+			_ => Task.FromResult<Outcome<FakeResult>>(
+				new Failed(Problem.ModelError(ErrorCategory.LockedOut, "Locked."))),
 			_ => invoked = true);
 
 		invoked.ShouldBeFalse();
@@ -60,7 +48,8 @@ public sealed class OutcomeFormComponentBaseTests
 		EditContext foreign = new(new object());
 
 		await Should.ThrowAsync<InvalidOperationException>(
-			harness.Submit(foreign, _ => Task.FromResult<Outcome<FakeResult>>(new Success<FakeResult>(new())), _ => { }));
+			harness.Submit(foreign, _ => Task.FromResult<Outcome<FakeResult>>(new Success<FakeResult>(new())),
+				_ => { }));
 	}
 
 	[Fact]
@@ -71,8 +60,16 @@ public sealed class OutcomeFormComponentBaseTests
 		TaskCompletionSource<Outcome<FakeResult>> pending = new();
 		var calls = 0;
 
-		var first = harness.Submit(context, _ => { calls++; return pending.Task; }, _ => { });
-		await harness.Submit(context, _ => { calls++; return pending.Task; }, _ => { });
+		var first = harness.Submit(context, _ =>
+		{
+			calls++;
+			return pending.Task;
+		}, _ => { });
+		await harness.Submit(context, _ =>
+		{
+			calls++;
+			return pending.Task;
+		}, _ => { });
 
 		calls.ShouldBe(1);
 		harness.Submitting.ShouldBeTrue();
@@ -92,5 +89,20 @@ public sealed class OutcomeFormComponentBaseTests
 				_ => throw new InvalidOperationException("continuation bug")));
 
 		harness.Submitting.ShouldBeFalse();
+	}
+
+	sealed record FakeResult;
+
+	sealed class Harness : OutcomeFormComponentBase
+	{
+		internal bool Submitting =>
+			IsSubmitting;
+
+		internal Task Submit<T>(EditContext editContext, Func<CancellationToken, Task<Outcome<T>>> call,
+			Action<T> onSuccess) where T : notnull =>
+			SubmitAsync(editContext, call, onSuccess);
+
+		internal EditContext ContextFor(object request) =>
+			EditContextFor(request);
 	}
 }

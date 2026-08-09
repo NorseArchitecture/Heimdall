@@ -1,13 +1,15 @@
 @if (!string.IsNullOrEmpty(Message))
 {
-	var statusMessageClass = Message.StartsWith("Error") ? "danger" : "success";
-	<div class="alert alert-@statusMessageClass" role="alert">
-		@Message
-	</div>
+    var statusMessageClass = Message.StartsWith("Error") ? "danger" : "success";
+    <div class="alert alert-@statusMessageClass" role="alert">
+        @Message
+    </div>
 }
 
 @code {
-	/// <summary>The status message to display; rendered as an error alert when it starts with "Error", success otherwise.</summary>
-	[Parameter]
-	public string? Message { get; set; }
+
+    /// <summary>The status message to display; rendered as an error alert when it starts with "Error", success otherwise.</summary>
+    [Parameter]
+    public string? Message { get; set; }
+
 }

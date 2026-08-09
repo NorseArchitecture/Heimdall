@@ -7,12 +7,14 @@ using Norse.Primitives;
 namespace Norse.AuthN.Components;
 
 /// <summary>
-/// The pit-of-success submit seam: pages hand <see cref="SubmitAsync{T}(EditContext, Func{CancellationToken, Task{Outcome{T}}}, Action{T})"/>
-/// the call and the success continuation, and the <see cref="Outcome{T}"/> error story is handled where it
-/// cannot be forgotten — <c>Failed</c> renders through <see cref="EditContextServerErrorsExtensions.ApplyServerErrors"/>,
-/// success clears prior server errors before the continuation runs. Total over the <see cref="Outcome{T}"/> domain
-/// only: exceptions (a throwing transport, a throwing continuation) propagate to the circuit's error boundary
-/// deliberately — swallowing them here would be a silent fallback.
+///     The pit-of-success submit seam: pages hand
+///     <see cref="SubmitAsync{T}(EditContext, Func{CancellationToken, Task{Outcome{T}}}, Action{T})" />
+///     the call and the success continuation, and the <see cref="Outcome{T}" /> error story is handled where it
+///     cannot be forgotten — <c>Failed</c> renders through
+///     <see cref="EditContextServerErrorsExtensions.ApplyServerErrors" />,
+///     success clears prior server errors before the continuation runs. Total over the <see cref="Outcome{T}" /> domain
+///     only: exceptions (a throwing transport, a throwing continuation) propagate to the circuit's error boundary
+///     deliberately — swallowing them here would be a silent fallback.
 /// </summary>
 public abstract class OutcomeFormComponentBase : AsyncComponentBase
 {
@@ -49,13 +51,15 @@ public abstract class OutcomeFormComponentBase : AsyncComponentBase
 		{
 			var name = e.FieldIdentifier.FieldName;
 			if (name.Length > BufferSuffix.Length && name.EndsWith(BufferSuffix, StringComparison.Ordinal))
-				((EditContext)sender!).NotifyFieldChanged(new FieldIdentifier(e.FieldIdentifier.Model, name[..^BufferSuffix.Length]));
+				((EditContext)sender!).NotifyFieldChanged(new FieldIdentifier(e.FieldIdentifier.Model,
+					name[..^BufferSuffix.Length]));
 		};
 		return _editContext = editContext;
 	}
 
-	/// <summary>Synchronous-continuation convenience over the <see cref="Func{T, Task}"/> overload.</summary>
-	protected Task SubmitAsync<T>(EditContext editContext, Func<CancellationToken, Task<Outcome<T>>> call, Action<T> onSuccess)
+	/// <summary>Synchronous-continuation convenience over the <see cref="Func{T, Task}" /> overload.</summary>
+	protected Task SubmitAsync<T>(EditContext editContext, Func<CancellationToken, Task<Outcome<T>>> call,
+		Action<T> onSuccess)
 		where T : notnull =>
 		SubmitAsync(editContext, call, value =>
 		{
@@ -63,8 +67,12 @@ public abstract class OutcomeFormComponentBase : AsyncComponentBase
 			return Task.CompletedTask;
 		});
 
-	/// <summary>Dispatches <paramref name="call"/> and routes its <see cref="Outcome{T}"/>: failure into the form, success into <paramref name="onSuccess"/>.</summary>
-	protected async Task SubmitAsync<T>(EditContext editContext, Func<CancellationToken, Task<Outcome<T>>> call, Func<T, Task> onSuccess)
+	/// <summary>
+	///     Dispatches <paramref name="call" /> and routes its <see cref="Outcome{T}" />: failure into the form, success
+	///     into <paramref name="onSuccess" />.
+	/// </summary>
+	protected async Task SubmitAsync<T>(EditContext editContext, Func<CancellationToken, Task<Outcome<T>>> call,
+		Func<T, Task> onSuccess)
 		where T : notnull
 	{
 		ArgumentNullException.ThrowIfNull(editContext);
@@ -72,7 +80,8 @@ public abstract class OutcomeFormComponentBase : AsyncComponentBase
 		// EditContextFor(request) silently loses the stamped-request blur mechanic — the exact
 		// forgettable-markup failure folding the mechanic into this base exists to prevent.
 		if (!ReferenceEquals(editContext, _editContext))
-			throw new InvalidOperationException("Bind the form as <EditForm EditContext=\"EditContextFor(_request)\"> — Model binding bypasses the stamped-request field mechanic.");
+			throw new InvalidOperationException(
+				"Bind the form as <EditForm EditContext=\"EditContextFor(_request)\"> — Model binding bypasses the stamped-request field mechanic.");
 		if (IsSubmitting)
 			return;
 
