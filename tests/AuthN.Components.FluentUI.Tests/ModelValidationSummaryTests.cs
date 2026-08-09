@@ -2,7 +2,7 @@ using Bunit;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.FluentUI.AspNetCore.Components;
 using Norse.Abstractions.Contracts;
-using Norse.AuthN.Components.ServerValidation;
+using Norse.Abstractions.Components.ServerValidation;
 
 namespace Norse.AuthN.Components.FluentUI.Tests;
 
