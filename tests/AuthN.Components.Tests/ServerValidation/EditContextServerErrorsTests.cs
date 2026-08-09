@@ -6,11 +6,6 @@ namespace Norse.AuthN.Components.Tests.ServerValidation;
 
 public sealed class EditContextServerErrorsTests
 {
-	sealed record FakeModel
-	{
-		public string Email { get; set; } = "";
-	}
-
 	static (EditContext Context, FakeModel Model) NewContext()
 	{
 		FakeModel model = new();
@@ -25,7 +20,7 @@ public sealed class EditContextServerErrorsTests
 		context.ApplyServerErrors(new()
 		{
 			Category = ErrorCategory.Validation,
-			Errors = new Dictionary<string, string[]> { [nameof(FakeModel.Email)] = ["Taken."] },
+			Errors = new Dictionary<string, string[]> { [nameof(FakeModel.Email)] = ["Taken."] }
 		});
 
 		context.GetValidationMessages(new FieldIdentifier(model, nameof(FakeModel.Email))).ShouldBe(["Taken."]);
@@ -38,7 +33,8 @@ public sealed class EditContextServerErrorsTests
 
 		context.ApplyServerErrors(Problem.ModelError(ErrorCategory.InvalidCredentials, "Invalid email or password."));
 
-		context.GetValidationMessages(new FieldIdentifier(model, string.Empty)).ShouldBe(["Invalid email or password."]);
+		context.GetValidationMessages(new FieldIdentifier(model, string.Empty))
+			.ShouldBe(["Invalid email or password."]);
 	}
 
 	[Fact]
@@ -74,8 +70,8 @@ public sealed class EditContextServerErrorsTests
 			Errors = new Dictionary<string, string[]>
 			{
 				[nameof(FakeModel.Email)] = ["Taken."],
-				[string.Empty] = ["Also broken."],
-			},
+				[string.Empty] = ["Also broken."]
+			}
 		});
 
 		context.NotifyFieldChanged(new FieldIdentifier(model, nameof(FakeModel.Email)));
@@ -90,7 +86,8 @@ public sealed class EditContextServerErrorsTests
 		var (context, _) = NewContext();
 		context.ApplyServerErrors(Problem.ModelError(ErrorCategory.InvalidCredentials, "Invalid email or password."));
 
-		context.Validate().ShouldBeTrue(); // raises OnValidationRequested → coordinator clears → no store blocks validity
+		context.Validate()
+			.ShouldBeTrue(); // raises OnValidationRequested → coordinator clears → no store blocks validity
 	}
 
 	[Fact]
@@ -136,7 +133,13 @@ public sealed class EditContextServerErrorsTests
 		context.ApplyServerErrors(Problem.ModelError(ErrorCategory.InvalidCredentials, "First."));
 		context.ApplyServerErrors(Problem.ModelError(ErrorCategory.InvalidCredentials, "Second."));
 
-		context.Properties.TryGetValue(EditContextServerErrorsExtensions.CoordinatorKey, out var coordinator).ShouldBeTrue();
+		context.Properties.TryGetValue(EditContextServerErrorsExtensions.CoordinatorKey, out var coordinator)
+			.ShouldBeTrue();
 		coordinator.ShouldBeOfType<ServerErrorCoordinator>();
+	}
+
+	sealed record FakeModel
+	{
+		public string Email { get; set; } = "";
 	}
 }

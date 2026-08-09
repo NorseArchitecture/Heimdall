@@ -8,36 +8,40 @@ using Norse.Primitives.Pii;
 namespace Norse.AuthN.Components;
 
 /// <summary>
-/// Validator for <see cref="RegisterRequest"/> — the single source of truth for registration
-/// validation rules on the whole platform. Blazor Server/WASM run it client-side via Blazilla's
-/// <c>FluentValidator</c>; Himinbjörg's generated <c>CommandRequestValidator&lt;RegisterCommand,
-/// RegisterRequest, RegisterResult&gt;</c> reaches through the server-sovereign <c>RegisterCommand</c>
-/// wrapper and runs this exact class again server-side. One declaration, two consumers, never
-/// duplicated.
-///
-/// The email rule lives entirely in FluentValidation's default rule set — there is no rule-set
-/// gating to a "submit" pass (ruled 2026-08-06, spec §6.1 amendment): Blazilla's field-change pass
-/// builds a bare <c>MemberNameValidatorSelector</c> that carries no rule-set guard, so gating the
-/// async lookup to a submit-only set is structurally unbuildable against this platform's actual
-/// Blazilla/FluentValidation versions. Instead the whole email chain is one
-/// <c>Cascade(CascadeMode.Stop)</c> rule: the sync shape check runs first, and the async existence
-/// lookup only fires once the shape is already sound — client-side that's the email field's change
-/// event (blur, not keystroke, since <c>FluentTextInput</c> binds on change), server-side it's the
-/// unmodified <c>CommandRequestValidator</c> adapter running the same chain.
+///     Validator for <see cref="RegisterRequest" /> — the single source of truth for registration
+///     validation rules on the whole platform. Blazor Server/WASM run it client-side via Blazilla's
+///     <c>FluentValidator</c>; Himinbjörg's generated
+///     <c>
+///         CommandRequestValidator&lt;RegisterCommand,
+///         RegisterRequest, NavigationResult&gt;
+///     </c>
+///     reaches through the server-sovereign <c>RegisterCommand</c>
+///     wrapper and runs this exact class again server-side. One declaration, two consumers, never
+///     duplicated.
+///     The email rule lives entirely in FluentValidation's default rule set — there is no rule-set
+///     gating to a "submit" pass (ruled 2026-08-06, spec §6.1 amendment): Blazilla's field-change pass
+///     builds a bare <c>MemberNameValidatorSelector</c> that carries no rule-set guard, so gating the
+///     async lookup to a submit-only set is structurally unbuildable against this platform's actual
+///     Blazilla/FluentValidation versions. Instead the whole email chain is one
+///     <c>Cascade(CascadeMode.Stop)</c> rule: the sync shape check runs first, and the async existence
+///     lookup only fires once the shape is already sound — client-side that's the email field's change
+///     event (blur, not keystroke, since <c>FluentTextInput</c> binds on change), server-side it's the
+///     unmodified <c>CommandRequestValidator</c> adapter running the same chain.
 /// </summary>
 public sealed partial class RegisterRequestValidator : AbstractValidator<RegisterRequest>
 {
 	/// <summary>
-	/// Initializes a new instance of the <see cref="RegisterRequestValidator"/> class. Not a C# 12
-	/// primary constructor: FluentValidation's <c>RuleFor</c> chain has to run as constructor-body
-	/// statements, and a class with a primary constructor has nowhere to put them — the platform's
-	/// own <c>CustomAsync</c> write-back proof (<c>AddressValidator</c>,
-	/// <c>CustomAsyncWriteBackTests.cs</c>) uses the identical ordinary-constructor shape for the
-	/// same reason. DI resolves this constructor exactly as it would a primary one.
+	///     Initializes a new instance of the <see cref="RegisterRequestValidator" /> class. Not a C# 12
+	///     primary constructor: FluentValidation's <c>RuleFor</c> chain has to run as constructor-body
+	///     statements, and a class with a primary constructor has nowhere to put them — the platform's
+	///     own <c>CustomAsync</c> write-back proof (<c>AddressValidator</c>,
+	///     <c>CustomAsyncWriteBackTests.cs</c>) uses the identical ordinary-constructor shape for the
+	///     same reason. DI resolves this constructor exactly as it would a primary one.
 	/// </summary>
 	/// <param name="authenticationService">The gRPC contract this validator calls to check email availability.</param>
 	/// <param name="logger">The logger for lookup failures.</param>
-	public RegisterRequestValidator(IAuthenticationService authenticationService, ILogger<RegisterRequestValidator> logger)
+	public RegisterRequestValidator(IAuthenticationService authenticationService,
+		ILogger<RegisterRequestValidator> logger)
 	{
 		RuleFor(x => x.Email)
 			.Cascade(CascadeMode.Stop)
@@ -52,7 +56,8 @@ public sealed partial class RegisterRequestValidator : AbstractValidator<Registe
 				// ahead under Cascade(Stop)) and passes through verbatim — no re-parse, no second
 				// format authority; the validity gate doubles as the traffic filter, so unproven
 				// input never buys this round trip or its database query.
-				var outcome = await authenticationService.EmailExists(new() { Email = email }, cancellationToken).ConfigureAwait(false);
+				var outcome = await authenticationService.EmailExists(new() { Email = email }, cancellationToken)
+					.ConfigureAwait(false);
 				switch (outcome)
 				{
 					case Success<BoolResponse>({ Value: true }):
@@ -75,6 +80,7 @@ public sealed partial class RegisterRequestValidator : AbstractValidator<Registe
 			.MinimumLength(8);
 	}
 
-	[LoggerMessage(Level = LogLevel.Error, Message = "Email-exists lookup failed: {Category} (correlation {CorrelationId})")]
+	[LoggerMessage(Level = LogLevel.Error,
+		Message = "Email-exists lookup failed: {Category} (correlation {CorrelationId})")]
 	static partial void LogEmailExistsLookupFailed(ILogger logger, ErrorCategory category, Guid? correlationId);
 }

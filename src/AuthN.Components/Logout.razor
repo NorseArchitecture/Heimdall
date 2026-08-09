@@ -4,21 +4,23 @@
 @inject NavigationManager Navigation
 
 @code {
-	/// <inheritdoc />
-	protected override async Task OnInitializedAsync()
-	{
-		var outcome = await AuthenticationService.Logout(CancellationToken);
 
-		// Non-null only when this request couldn't complete the sign-out itself (an established Blazor
-		// Server interactive circuit, where the response has already started) — a forced full-page
-		// navigation to the completion endpoint finishes it on a genuine new request instead. A failed
-		// sign-out (Failed case, rare) still routes home — there's no cookie state left for the UI to
-		// usefully recover, matching this component's pre-existing lack of any error-display path.
-		var url = outcome switch
-		{
-			Success<NavigationResult>(var result) => result.NextUrl,
-			Failed => "/",
-		};
-		Navigation.NavigateTo(url, forceLoad: true);
-	}
+    /// <inheritdoc />
+    protected override async Task OnInitializedAsync()
+    {
+        var outcome = await AuthenticationService.Logout(CancellationToken);
+
+        // Non-null only when this request couldn't complete the sign-out itself (an established Blazor
+        // Server interactive circuit, where the response has already started) — a forced full-page
+        // navigation to the completion endpoint finishes it on a genuine new request instead. A failed
+        // sign-out (Failed case, rare) still routes home — there's no cookie state left for the UI to
+        // usefully recover, matching this component's pre-existing lack of any error-display path.
+        var url = outcome switch
+        {
+            Success<NavigationResult>(var result) => result.NextUrl,
+            Failed => "/"
+        };
+        Navigation.NavigateTo(url, forceLoad: true);
+    }
+
 }

@@ -6,9 +6,9 @@ using Norse.Abstractions.Contracts;
 namespace Norse.AuthN.Services.Tests;
 
 /// <summary>
-/// Purity test — locks the ratified wire-purity ruling against future drift. Wire
-/// <c>[DataContract]</c> records carry no mediator marker and no <c>[Authorize]</c> at all; those
-/// belong solely to Himinbjörg's server-sovereign command wrappers.
+///     Purity test — locks the ratified wire-purity ruling against future drift. Wire
+///     <c>[DataContract]</c> records carry no mediator marker and no <c>[Authorize]</c> at all; those
+///     belong solely to Himinbjörg's server-sovereign command wrappers.
 /// </summary>
 public sealed class RequestContractTests
 {
@@ -23,21 +23,29 @@ public sealed class RequestContractTests
 		// reference itself is absent. That absence is the actual enforcement mechanism.
 		typeof(IAuthenticationService).Assembly.GetReferencedAssemblies()
 			.Any(a => a.Name == "Norse.Abstractions.Web.Server")
-			.ShouldBeFalse("Norse.AuthN.Services must not reference Norse.Abstractions.Web.Server — mediator law is structurally invisible to the wire assembly, not merely unused by convention.");
+			.ShouldBeFalse(
+				"Norse.AuthN.Services must not reference Norse.Abstractions.Web.Server — mediator law is structurally invisible to the wire assembly, not merely unused by convention.");
 	}
 
 	[Fact]
 	void Wire_records_carry_no_Authorize_attribute()
 	{
-		foreach (var wireType in (Type[])[typeof(LoginRequest), typeof(RegisterRequest), typeof(GetMyPersonalDataRequest), typeof(GetMaskedPersonalDataRequest), typeof(PersonalDataResponse), typeof(MaskedPersonalDataResponse), typeof(EmailExistsRequest)])
+		foreach (var wireType in (Type[])
+			[
+				typeof(LoginRequest), typeof(RegisterRequest), typeof(GetMyPersonalDataRequest),
+				typeof(GetMaskedPersonalDataRequest), typeof(PersonalDataResponse), typeof(MaskedPersonalDataResponse),
+				typeof(EmailExistsRequest)
+			])
 			wireType.GetCustomAttribute<AuthorizeAttribute>()
-				.ShouldBeNull($"{wireType.Name} must not carry [Authorize] — that policy lives on Himinbjörg's command wrapper.");
+				.ShouldBeNull(
+					$"{wireType.Name} must not carry [Authorize] — that policy lives on Himinbjörg's command wrapper.");
 	}
 
 	[Fact]
 	void Every_service_method_ends_with_a_trailing_cancellation_token()
 	{
-		foreach (var method in typeof(IAuthenticationService).GetMethods().Concat(typeof(IIdentityService).GetMethods()))
+		foreach (var method in typeof(IAuthenticationService).GetMethods()
+			.Concat(typeof(IIdentityService).GetMethods()))
 			method.GetParameters()[^1].ParameterType.ShouldBe(typeof(CancellationToken));
 	}
 

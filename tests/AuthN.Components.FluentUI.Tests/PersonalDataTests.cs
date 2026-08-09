@@ -33,12 +33,19 @@ public sealed class PersonalDataTests : BunitContext
 	{
 		var service = Substitute.For<IIdentityService>();
 		service.GetMyPersonalDataAsync(Arg.Any<GetMyPersonalDataRequest>(), Arg.Any<CancellationToken>())
-			.Returns(_ => Task.FromResult(Outcome<PersonalDataResponse>.Ok(new PersonalDataResponse { Email = "user@example.com", PhoneNumber = "" })));
+			.Returns(_ =>
+				Task.FromResult(
+					Outcome<PersonalDataResponse>.Ok(new PersonalDataResponse
+					{
+						Email = "user@example.com",
+						PhoneNumber = ""
+					})));
 		Services.AddSingleton(service);
 
 		var component = Render<PersonalData>();
 		await component.InvokeAsync(() => component.Find("fluent-button").Click());
 
-		await service.Received(1).GetMyPersonalDataAsync(Arg.Any<GetMyPersonalDataRequest>(), Arg.Any<CancellationToken>());
+		await service.Received(1)
+			.GetMyPersonalDataAsync(Arg.Any<GetMyPersonalDataRequest>(), Arg.Any<CancellationToken>());
 	}
 }

@@ -8,11 +8,14 @@ namespace Norse.AuthN.Components;
 /// <summary>
 ///     Validator for <see cref="LoginRequest" /> — the single source of truth for login validation
 ///     rules on the whole platform. Blazor Server/WASM run it client-side via Blazilla's
-///     <c>FluentValidator</c>; Himinbjörg's generated <c>CommandRequestValidator&lt;LoginCommand,
-///     LoginRequest, NavigationResult&gt;</c> reaches through the server-sovereign <c>LoginCommand</c>
+///     <c>FluentValidator</c>; Himinbjörg's generated
+///     <c>
+///         CommandRequestValidator&lt;LoginCommand,
+///         LoginRequest, NavigationResult&gt;
+///     </c>
+///     reaches through the server-sovereign <c>LoginCommand</c>
 ///     wrapper and runs this exact class again server-side. One declaration, two consumers, never
 ///     duplicated.
-///
 ///     THE RULE REGISTERS ON THE STAMP — <see cref="LoginRequest.Email" />, the
 ///     <c>Result&lt;EmailAddress&gt;</c> — so every predicate reads the parsed verdict and any
 ///     future business rule works against the domain struct, never a raw string: the parser owns
@@ -24,7 +27,7 @@ namespace Norse.AuthN.Components;
 /// </summary>
 public sealed class LoginRequestValidator : AbstractValidator<LoginRequest>
 {
-	/// <summary>Initializes a new instance of the <see cref="LoginRequestValidator"/> class.</summary>
+	/// <summary>Initializes a new instance of the <see cref="LoginRequestValidator" /> class.</summary>
 	public LoginRequestValidator()
 	{
 		RuleFor(x => x.Email)
