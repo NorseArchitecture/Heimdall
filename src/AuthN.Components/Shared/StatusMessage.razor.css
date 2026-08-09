@@ -1,0 +1,15 @@
+.alert {
+	border-radius: 4px;
+	padding: 0.75rem 1rem;
+	margin: 0.5rem 0;
+}
+
+.alert-danger {
+	border: 1px dashed var(--error);
+	color: var(--error);
+}
+
+.alert-success {
+	border: 1px dashed var(--success);
+	color: var(--success);
+}
