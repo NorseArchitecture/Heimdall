@@ -91,6 +91,14 @@ dotnet_diagnostic.IDE0130.severity = error
 ## ── Accessibility — omit modifiers that match the default ─────────────────
 dotnet_style_require_accessibility_modifiers = omit_if_default
 dotnet_diagnostic.IDE0040.severity = error
+# ReSharper/Rider reads its own syntax-style keys, not the Roslyn property above —
+# without these, R# code cleanup ADDS explicit modifiers (its factory default) and
+# every one of them is an IDE0040 build error. With them, the same cleanup step
+# (ArrangeTypeMemberAccessModifier) REMOVES redundant modifiers instead: cleanup
+# enforces omit_if_default rather than fighting it. Proven live 2026-08-09: 80 errors
+# on Urðarbrunnr without the keys, clean A− sweep with them (piloted there same day).
+resharper_csharp_default_private_modifier = implicit
+resharper_csharp_default_internal_modifier = implicit
 
 ## ── var: prefer var everywhere; construction uses `Type x = new();` ───────
 # Roslyn's "type is apparent" heuristic groups factory invocations
@@ -237,6 +245,27 @@ resharper_csharp_wrap_before_arrow_with_expressions = false
 resharper_csharp_place_expr_method_on_single_line = never
 resharper_csharp_place_expr_property_on_single_line = never
 resharper_csharp_place_expr_accessor_on_single_line = never
+# Bare literals in multi-argument calls carry their parameter name — a naked
+# `true` or `null` riding an argument list (`DiagnosticSeverity.Error, true`)
+# is exactly the ambiguity named arguments exist to kill. Cleanup's
+# ArrangeArgumentsStyle reads these; left unset it runs at R#'s positional
+# default and STRIPS hand-authored names (the 2026-08-09 Midgard sweep took
+# ~80 before the keys landed). Single-argument calls are exempt so assertions
+# stay `ShouldBe(3)`, not `ShouldBe(expected: 3)`; strings, lambdas, and
+# ordinary expressions already name themselves, so those categories pin
+# positional against default drift.
+resharper_csharp_arguments_literal = named
+resharper_csharp_arguments_skip_single = true
+resharper_csharp_arguments_string_literal = positional
+resharper_csharp_arguments_anonymous_function = positional
+resharper_csharp_arguments_named = positional
+resharper_csharp_arguments_other = positional
+# `partial` is never redundant on this platform — the second part is source-
+# generated (an STJ JsonSerializerContext, an EF configuration part from
+# EntityConfigurationApplicationGenerator), and when R# can't see generated
+# output its redundancy sweep strips the keyword and severs the generator.
+# Midgard's 2026-08-09 re-run did exactly that, twice.
+resharper_partial_type_with_single_part_highlighting = none
 
 ## ── Declared at default, to pin them against SDK drift ────────────────────
 dotnet_style_object_initializer = true
