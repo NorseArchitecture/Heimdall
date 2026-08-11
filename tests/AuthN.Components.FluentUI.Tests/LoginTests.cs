@@ -3,14 +3,16 @@ using Bunit.TestDoubles;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.FluentUI.AspNetCore.Components;
-using Norse.AuthN.Services;
 using Norse.Abstractions.Contracts;
+using Norse.AuthN.Services;
 using Norse.Primitives;
 
 namespace Norse.AuthN.Components.FluentUI.Tests;
 
 public sealed class LoginTests : BunitContext
 {
+	readonly ISessionTransition _sessionTransition = Substitute.For<ISessionTransition>();
+
 	public LoginTests()
 	{
 		Services.AddFluentUIComponents();
@@ -18,6 +20,7 @@ public sealed class LoginTests : BunitContext
 		// interop calls bunit has no way to know about in advance — loose mode is bunit's own
 		// documented answer, rather than hand-enumerating every internal call FluentUI might make.
 		JSInterop.Mode = JSRuntimeMode.Loose;
+		Services.AddSingleton(_sessionTransition);
 	}
 
 	[Fact]
@@ -106,8 +109,8 @@ public sealed class LoginTests : BunitContext
 		FillCredentials(component);
 		component.Find("form").Submit();
 
-		navigation.Uri.ShouldBe(navigation.ToAbsoluteUri("Account/LoginWith2fa?RememberMe=false").ToString());
-		navigation.History.ShouldHaveSingleItem().Options.ForceLoad.ShouldBeTrue();
+		_sessionTransition.Received(1).Begin(new() { NextUrl = "Account/LoginWith2fa?RememberMe=false" });
+		Services.GetRequiredService<BunitNavigationManager>().History.ShouldBeEmpty();
 	}
 
 	// SubmitAsync gates on FormValidator's pass, so nothing dispatches until Email/Password satisfy

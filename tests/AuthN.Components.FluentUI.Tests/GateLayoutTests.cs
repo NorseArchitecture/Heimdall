@@ -48,6 +48,7 @@ public sealed class GateLayoutTests : BunitContext
 	void Login_renders_the_create_an_account_link()
 	{
 		Services.AddSingleton(Substitute.For<IAuthenticationService>());
+		Services.AddSingleton(Substitute.For<ISessionTransition>());
 		Services.AddScoped<IValidator<LoginRequest>, LoginRequestValidator>();
 
 		var component = Render<Login>();
@@ -65,6 +66,7 @@ public sealed class GateLayoutTests : BunitContext
 	void Login_places_the_forgot_password_link_inside_the_password_fields_label()
 	{
 		Services.AddSingleton(Substitute.For<IAuthenticationService>());
+		Services.AddSingleton(Substitute.For<ISessionTransition>());
 		Services.AddScoped<IValidator<LoginRequest>, LoginRequestValidator>();
 
 		var component = Render<Login>();

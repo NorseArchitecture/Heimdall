@@ -1,0 +1,17 @@
+@inject NavigationManager NavigationManager
+
+@code {
+
+    /// <inheritdoc />
+    // NavigationManager.Uri is always absolute; relativizing keeps the redirect host-agnostic
+    // (works the same behind a reverse proxy or a different external hostname than what issued it).
+    // Soft navigation deliberately: no principal changed when this fires -- an unauthenticated
+    // visitor is being pointed at the gate, and Login renders interactively on every host. The
+    // scaffold's forced reload was cargo cult (see the session-transition seam spec).
+    protected override void OnInitialized()
+    {
+        NavigationManager.NavigateTo(
+            $"Account/Login?returnUrl={Uri.EscapeDataString($"/{NavigationManager.ToBaseRelativePath(NavigationManager.Uri)}")}");
+    }
+
+}

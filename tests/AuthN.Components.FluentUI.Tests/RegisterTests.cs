@@ -1,4 +1,5 @@
 using Bunit;
+using Bunit.TestDoubles;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -124,5 +125,31 @@ public sealed class RegisterTests : BunitContext
 		await component.Find("form").SubmitAsync();
 		service.ReceivedCalls().Count(c => c.GetMethodInfo().Name == nameof(IAuthenticationService.EmailExists))
 			.ShouldBeGreaterThanOrEqualTo(1);
+	}
+
+	[Fact]
+	async Task A_successful_registration_soft_navigates_to_the_server_resolved_hop()
+	{
+		var service = Substitute.For<IAuthenticationService>();
+		service.Register(Arg.Any<RegisterRequest>(), Arg.Any<CancellationToken>())
+			.Returns(_ =>
+				Task.FromResult<Outcome<NavigationResult>>(
+					new Success<NavigationResult>(new() { NextUrl = "/Account/Login" })));
+		service.EmailExists(Arg.Any<EmailExistsRequest>(), Arg.Any<CancellationToken>())
+			.Returns(_ => Task.FromResult<Outcome<BoolResponse>>(new Success<BoolResponse>(new() { Value = false })));
+		Services.AddSingleton(service);
+		Services.AddScoped<IValidator<RegisterRequest>>(_ =>
+			new RegisterRequestValidator(service, NullLogger<RegisterRequestValidator>.Instance));
+		var component = Render<Register>();
+		var inputs = component.FindAll("fluent-text-input");
+		await inputs[0].ChangeAsync("designer@example.com");
+		await inputs[1].ChangeAsync("aaaaaaaa");
+
+		await component.Find("form").SubmitAsync();
+
+		var navigation = Services.GetRequiredService<BunitNavigationManager>();
+		var entry = navigation.History.ShouldHaveSingleItem();
+		entry.Options.ForceLoad.ShouldBeFalse();
+		navigation.Uri.ShouldBe(navigation.ToAbsoluteUri("/Account/Login").ToString());
 	}
 }

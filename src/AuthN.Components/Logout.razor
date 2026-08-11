@@ -1,26 +1,25 @@
 @page "/Account/Logout"
-@inherits AsyncComponentBase
+@inherits OutcomeComponentBase
 @inject IAuthenticationService AuthenticationService
-@inject NavigationManager Navigation
+@inject ISessionTransition SessionTransition
+
+<PageTitle>Log out</PageTitle>
+
+@if (Problem is not null)
+{
+    <div class="alert alert-danger" role="alert">Sign-out failed — you are still signed in.</div>
+}
+
+<button class="btn btn-primary" disabled="@IsDispatching" @onclick="HandleLogoutAsync">Log out</button>
 
 @code {
 
-    /// <inheritdoc />
-    protected override async Task OnInitializedAsync()
-    {
-        var outcome = await AuthenticationService.Logout(CancellationToken);
-
-        // Non-null only when this request couldn't complete the sign-out itself (an established Blazor
-        // Server interactive circuit, where the response has already started) — a forced full-page
-        // navigation to the completion endpoint finishes it on a genuine new request instead. A failed
-        // sign-out (Failed case, rare) still routes home — there's no cookie state left for the UI to
-        // usefully recover, matching this component's pre-existing lack of any error-display path.
-        var url = outcome switch
-        {
-            Success<NavigationResult>(var result) => result.NextUrl,
-            Failed => "/"
-        };
-        Navigation.NavigateTo(url, forceLoad: true);
-    }
+    // Click-to-confirm, never a state-changing GET: a bare render performs nothing. Declare-success-
+    // only: Failed renders through the base's Problem; only Success -- a genuine principal change --
+    // begins the session transition. NextUrl is always server-resolved (a plain "/" or the deferred
+    // sign-in completion endpoint); the client navigates it unconditionally.
+    Task HandleLogoutAsync() =>
+        DispatchAsync(ct => AuthenticationService.Logout(ct),
+            result => SessionTransition.Begin(result));
 
 }

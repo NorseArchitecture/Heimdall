@@ -22,8 +22,11 @@
 @code {
     readonly RegisterRequest _request = new() { EmailInput = "" };
 
+    // Registration signs nobody in -- the handler creates the user and answers with the login page
+    // (the email-confirmation page the day that flow lands). No principal changed, so no session
+    // transition: an ordinary soft navigation to the server-resolved hop is the honest move.
     Task HandleRegisterAsync(EditContext editContext) =>
         SubmitAsync(editContext, ct => AuthenticationService.Register(_request, ct),
-            result => Navigation.NavigateTo(result.NextUrl, forceLoad: true));
+            result => Navigation.NavigateTo(result.NextUrl));
 
 }
