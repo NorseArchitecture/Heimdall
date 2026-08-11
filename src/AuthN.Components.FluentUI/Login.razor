@@ -9,8 +9,8 @@
 <h1>Log in</h1>
 <p class="gate-subtitle">Welcome back to the bridge.</p>
 
-<EditForm EditContext="EditContextFor(_request)" OnValidSubmit="HandleLoginAsync" FormName="authn-login">
-    <FluentValidator/>
+<EditForm EditContext="EditContextFor(_request)" OnSubmit="HandleLoginAsync" FormName="authn-login">
+    <FormValidator/>
     <ModelValidationSummary/>
     <FluentTextInput @bind-Value="_request.EmailInput" Label="Email" Required="true"/>
     <FluentTextInput @bind-Value="_request.Password" TextInputType="TextInputType.Password" Label="Password" Required="true">

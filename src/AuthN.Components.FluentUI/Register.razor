@@ -10,7 +10,7 @@
 <p class="gate-subtitle">One identity for every realm.</p>
 
 <EditForm EditContext="EditContextFor(_request)" OnSubmit="HandleRegisterAsync" FormName="authn-register">
-    <FluentValidator AsyncMode="true"/>
+    <FormValidator/>
     <ModelValidationSummary/>
     <FluentTextInput @bind-Value="_request.EmailInput" Label="Email" Required="true"/>
     <FluentTextInput @bind-Value="_request.Password" TextInputType="TextInputType.Password" Label="Password" Required="true"/>
@@ -22,13 +22,8 @@
 @code {
     readonly RegisterRequest _request = new() { EmailInput = "" };
 
-    async Task HandleRegisterAsync(EditContext editContext)
-    {
-        if (!await editContext.ValidateAsync())
-            return;
-
-        await SubmitAsync(editContext, ct => AuthenticationService.Register(_request, ct),
+    Task HandleRegisterAsync(EditContext editContext) =>
+        SubmitAsync(editContext, ct => AuthenticationService.Register(_request, ct),
             result => Navigation.NavigateTo(result.NextUrl, forceLoad: true));
-    }
 
 }

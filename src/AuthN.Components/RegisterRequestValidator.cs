@@ -9,8 +9,8 @@ namespace Norse.AuthN.Components;
 
 /// <summary>
 ///     Validator for <see cref="RegisterRequest" /> — the single source of truth for registration
-///     validation rules on the whole platform. Blazor Server/WASM run it client-side via Blazilla's
-///     <c>FluentValidator</c>; Himinbjörg's generated
+///     validation rules on the whole platform. Blazor Server/WASM run it client-side via Asgard's
+///     <c>FormValidator</c>; Himinbjörg's generated
 ///     <c>
 ///         CommandRequestValidator&lt;RegisterCommand,
 ///         RegisterRequest, NavigationResult&gt;
