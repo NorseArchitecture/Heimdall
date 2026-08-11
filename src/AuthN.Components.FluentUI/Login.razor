@@ -2,7 +2,7 @@
 @layout GateLayout
 @inherits OutcomeFormComponentBase
 @inject IAuthenticationService AuthenticationService
-@inject NavigationManager Navigation
+@inject ISessionTransition SessionTransition
 
 <PageTitle>Log in</PageTitle>
 
@@ -29,11 +29,12 @@
 
     // NavigationResult.NextUrl is always a concrete, server-resolved value -- 2FA challenge, deferred
     // sign-in completion, or a plain "/" -- so the component has no flag to branch on, no route to
-    // build, and no default of its own to apply.
+    // build, and no default of its own to apply. The seam owns the mechanics; the page states the
+    // domain fact: the principal changed, re-establish the session there.
     Task HandleLoginAsync(EditContext editContext)
     {
         return SubmitAsync(editContext, ct => AuthenticationService.Login(_request, ct),
-            result => Navigation.NavigateTo(result.NextUrl, forceLoad: true));
+            result => SessionTransition.Begin(result));
     }
 
 }
