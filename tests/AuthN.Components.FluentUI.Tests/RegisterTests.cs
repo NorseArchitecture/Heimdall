@@ -19,6 +19,33 @@ public sealed class RegisterTests : BunitContext
 		JSInterop.Mode = JSRuntimeMode.Loose;
 	}
 
+	[Fact]
+	async Task An_empty_registration_is_rejected_before_the_service_call()
+	{
+		var service = Substitute.For<IAuthenticationService>();
+		service.EmailExists(Arg.Any<EmailExistsRequest>(), Arg.Any<CancellationToken>())
+			.Returns(_ => Task.FromResult<Outcome<BoolResponse>>(
+				new Success<BoolResponse>(new() { Value = false })));
+		service.Register(Arg.Any<RegisterRequest>(), Arg.Any<CancellationToken>())
+			.Returns(_ => Task.FromResult<Outcome<NavigationResult>>(
+				new Success<NavigationResult>(new() { NextUrl = "/" })));
+		Services.AddSingleton(service);
+		Services.AddScoped<IValidator<RegisterRequest>>(_ =>
+			new RegisterRequestValidator(service, NullLogger<RegisterRequestValidator>.Instance));
+
+		var component = Render<Register>();
+
+		await component.Find("form").SubmitAsync();
+
+		await service.DidNotReceiveWithAnyArgs()
+			.Register(default!, Xunit.TestContext.Current.CancellationToken);
+		component.WaitForAssertion(() =>
+		{
+			component.Markup.ShouldContain("'Password' must not be empty.");
+			component.Markup.ShouldContain("The length of 'Password' must be at least 8 characters.");
+		});
+	}
+
 	// The deadlock lock (spec §10), model-level rejection variant — a race-lost registration
 	// (Conflict, discovered only at the real Register() call, past the pre-submit EmailExists check)
 	// must be correctable the same way a rejected login is. Fails against the pre-Task-12 hand-rolled
