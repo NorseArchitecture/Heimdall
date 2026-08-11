@@ -110,9 +110,9 @@ public sealed class LoginTests : BunitContext
 		navigation.History.ShouldHaveSingleItem().Options.ForceLoad.ShouldBeTrue();
 	}
 
-	// FluentValidator blocks OnValidSubmit until Email/Password pass LoginRequestValidator's rules
-	// (NotEmpty+EmailAddress, NotEmpty+MinimumLength(8)) — both tests need real, valid-format input
-	// before submitting, or the mocked gateway is never reached at all.
+	// SubmitAsync gates on FormValidator's pass, so nothing dispatches until Email/Password satisfy
+	// LoginRequestValidator's rules (NotEmpty+EmailAddress, NotEmpty+MinimumLength(8)) — both tests
+	// need real, valid-format input before submitting, or the mocked service is never reached at all.
 	static void FillCredentials(IRenderedComponent<Login> component)
 	{
 		var inputs = component.FindAll("fluent-text-input");

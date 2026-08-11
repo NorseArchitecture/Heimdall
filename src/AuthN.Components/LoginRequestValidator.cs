@@ -7,8 +7,8 @@ namespace Norse.AuthN.Components;
 
 /// <summary>
 ///     Validator for <see cref="LoginRequest" /> — the single source of truth for login validation
-///     rules on the whole platform. Blazor Server/WASM run it client-side via Blazilla's
-///     <c>FluentValidator</c>; Himinbjörg's generated
+///     rules on the whole platform. Blazor Server/WASM run it client-side via Asgard's
+///     <c>FormValidator</c>; Himinbjörg's generated
 ///     <c>
 ///         CommandRequestValidator&lt;LoginCommand,
 ///         LoginRequest, NavigationResult&gt;
