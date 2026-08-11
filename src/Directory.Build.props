@@ -37,4 +37,26 @@
 		<None Include="README.md" Pack="true" PackagePath="\" Condition="Exists('README.md')" />
 		<None Include="$(MSBuildThisFileDirectory)../LICENSE" Pack="true" PackagePath="\" Condition="Exists('$(MSBuildThisFileDirectory)../LICENSE')" />
 	</ItemGroup>
+	<!-- Frontend platform-compatibility declarations (CA1416) — opt-in only, via NorseFrontendPlatforms,
+	     so server-only projects (EF persistence, migration runners, gRPC server hosts, workers) are never
+	     touched. Two tiers because not every FE project is MAUI-bound: a runnable WASM client head
+	     (Yggdrasil's Hosting.Web.Client, BlazingStory's Hosting.Stories.Client) will never compile into a
+	     MAUI app package and should declare only 'Wasm'; a portable shared library a future MAUI head will
+	     also reference (RCL components, gRPC/wire contracts, design-system tokens) should declare 'All'.
+	     No MAUI head exists on the platform yet (2026-08-11) — this is prep so the eventual MAUI build-out
+	     is a flip of one property per project, not a retrofit sweep across every realm. Himinbjörg is
+	     sealed server-side and never opts in to either tier. -->
+	<PropertyGroup>
+		<NorseFrontendPlatforms Condition="'$(NorseFrontendPlatforms)' == ''"></NorseFrontendPlatforms>
+	</PropertyGroup>
+	<ItemGroup Condition="'$(NorseFrontendPlatforms)' == 'Wasm'">
+		<SupportedPlatform Include="browser" />
+	</ItemGroup>
+	<ItemGroup Condition="'$(NorseFrontendPlatforms)' == 'All'">
+		<SupportedPlatform Include="browser" />
+		<SupportedPlatform Include="android" />
+		<SupportedPlatform Include="ios" />
+		<SupportedPlatform Include="maccatalyst" />
+		<SupportedPlatform Include="windows" />
+	</ItemGroup>
 </Project>
