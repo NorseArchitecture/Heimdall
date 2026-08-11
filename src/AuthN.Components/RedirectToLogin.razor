@@ -3,15 +3,22 @@
 @code {
 
     /// <inheritdoc />
-    // NavigationManager.Uri is always absolute; relativizing keeps the redirect host-agnostic
-    // (works the same behind a reverse proxy or a different external hostname than what issued it).
+    // The absolute URI's PathAndQuery preserves the app's base path (e.g. "/app/orders" when hosted
+    // below the origin root) and any query string on the protected route -- ToBaseRelativePath strips
+    // the base segment, and prepending "/" to that stripped value silently discarded it on any
+    // non-root deployment (Codex review, PR #52).
     // Soft navigation deliberately: no principal changed when this fires -- an unauthenticated
     // visitor is being pointed at the gate, and Login renders interactively on every host. The
-    // scaffold's forced reload was cargo cult (see the session-transition seam spec).
+    // scaffold's forced reload was cargo cult (see the session-transition seam spec). History is
+    // replaced, not pushed: the protected route's entry doesn't lead anywhere useful while the
+    // visitor stays unauthenticated (it just renders this same redirect again), so leaving it in the
+    // stack turns Back into a bounce between login and this redirect (Codex review, PR #52).
     protected override void OnInitialized()
     {
+        var returnUrl = new Uri(NavigationManager.Uri).PathAndQuery;
         NavigationManager.NavigateTo(
-            $"Account/Login?returnUrl={Uri.EscapeDataString($"/{NavigationManager.ToBaseRelativePath(NavigationManager.Uri)}")}");
+            $"Account/Login?returnUrl={Uri.EscapeDataString(returnUrl)}",
+            new NavigationOptions { ReplaceHistoryEntry = true });
     }
 
 }
