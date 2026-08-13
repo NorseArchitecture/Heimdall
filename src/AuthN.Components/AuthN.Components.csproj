@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk.Razor">
 	<PropertyGroup>
 		<Description>Norse.AuthN.Components: FluentValidation validators over AuthN.Services' request records and the headless (no FluentUI) Razor components — Logout.razor, the growing Pages/ folder of markup-only status pages (AccessDenied, Lockout, etc.), and Shared/StatusMessage.razor (a pure [Parameter] renderer — no HttpContext, no cookie fallback; that's Himinbjorg's server-side redirect pattern, deliberately left behind), migrated off Himinbjorg's temporary Identity.Web.Server staging ground component by component. Components inject IAuthenticationService directly (transport-dumb; each host registers its own implementation via DI), and there is no AuthenticationResult wrapper (retired with the gateway interface itself). Any component with FluentUI markup belongs in AuthN.Components.FluentUI instead, never here.</Description>
+		<NorseFrontendPlatforms>All</NorseFrontendPlatforms>
 	</PropertyGroup>
 	<ItemGroup>
 		<NorseRef Include="Abstractions.Components">

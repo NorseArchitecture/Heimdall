@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk.Razor">
 	<PropertyGroup>
 		<Description>Norse.AuthN.Components.FluentUI: Login/Register Razor components plus the growing set of FluentUI presentational components migrated off Himinbjorg (ShowRecoveryCodes, etc.), FluentUI Blazor v5, wired to inject IAuthenticationService directly (transport-dumb; each host registers its own implementation via DI), never a caught exception (spec §9.6/§9.8). Logout.razor lives in the headless AuthN.Components instead — it has no FluentUI markup, only @code.</Description>
+		<NorseFrontendPlatforms>All</NorseFrontendPlatforms>
 	</PropertyGroup>
 	<ItemGroup>
 		<PackageReference Include="Microsoft.FluentUI.AspNetCore.Components" Version="5.*-*" />

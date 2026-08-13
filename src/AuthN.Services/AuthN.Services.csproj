@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<Description>Norse.AuthN.Services: the IAuthenticationService gRPC contract and its wire request records (LoginRequest, RegisterRequest, EmailExistsRequest — responses are Asgard's NavigationResult/BoolResponse under Outcome&lt;T&gt;; no result record lives here), plus the IIdentityService disclosure contract and its wire records (GetMyPersonalDataRequest, GetMaskedPersonalDataRequest, PersonalDataResponse, MaskedPersonalDataResponse) and the IdentityPolicies/AuthNPolicies policy-name constants — no mediator marker, no [Authorize], no Razor, no FluentValidation, no Blazilla. Logout is a CancellationToken-only operation; there is no LogoutRequest. A consumer who wants the gRPC declarations without AuthN.Components' Razor components references only this assembly, wraps its own UI around IAuthenticationService/IIdentityService, and wires it to whatever backend it sees fit.</Description>
+		<NorseFrontendPlatforms>All</NorseFrontendPlatforms>
 	</PropertyGroup>
 	<ItemGroup>
 		<NorseRef Include="Abstractions.Contracts">
@@ -10,6 +11,5 @@
 		<!-- Overrides a known-vulnerable transitive version pulled in by System.ServiceModel.Primitives. -->
 		<PackageReference Include="System.Security.Cryptography.Xml" Version="11.*-*" />
 		<PackageReference Include="System.ServiceModel.Primitives" Version="10.*" />
-		<SupportedPlatform Include="browser" />
 	</ItemGroup>
 </Project>
