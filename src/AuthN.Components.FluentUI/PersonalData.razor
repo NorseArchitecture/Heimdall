@@ -40,8 +40,17 @@
             return; // Failed(...) — nothing to download; richer error surfacing is a future pass.
 
         // Cached, not re-imported per click — the module reference is disposed in DisposeAsync below.
-        _module ??= await JSRuntime.InvokeAsync<IJSObjectReference>("import", "./_content/Norse.AuthN.Components.FluentUI/downloadFile.js");
-        await _module.InvokeVoidAsync("downloadJson", "PersonalData.json", personalData);
+        // JSDisconnectedException means the circuit dropped mid-call (e.g. navigation away
+        // during the download); nothing to download to at that point — richer error surfacing
+        // is the same future pass as the Failed(...) case above.
+        try
+        {
+            _module ??= await JSRuntime.InvokeAsync<IJSObjectReference>("import", "./_content/Norse.AuthN.Components.FluentUI/downloadFile.js");
+            await _module.InvokeVoidAsync("downloadJson", "PersonalData.json", personalData);
+        }
+        catch (JSDisconnectedException)
+        {
+        }
     }
 
     /// <summary>
