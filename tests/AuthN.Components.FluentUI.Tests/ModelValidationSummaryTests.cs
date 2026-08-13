@@ -76,7 +76,7 @@ public sealed class ModelValidationSummaryTests : BunitContext
 		component.Markup.ShouldContain("Invalid email or password.");
 
 		// no Blazilla in this form — the coordinator's own notification must drive the re-render
-		await component.InvokeAsync(context.Validate);
+		await component.InvokeAsync(() => context.ValidateAsync());
 
 		component.Markup.ShouldNotContain("Invalid email or password.");
 	}
