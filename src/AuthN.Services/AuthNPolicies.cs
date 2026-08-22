@@ -1,3 +1,6 @@
+using Microsoft.AspNetCore.Authorization;
+using Norse.Abstractions.Components.Authorization;
+
 namespace Norse.AuthN.Services;
 
 /// <summary>
@@ -7,6 +10,15 @@ namespace Norse.AuthN.Services;
 /// </summary>
 public static class AuthNPolicies
 {
-	/// <summary>Satisfied by any authenticated-or-anonymous-cookie principal — no real requirement.</summary>
+	/// <summary>Satisfied by any principal, the anonymous role included — never an empty one.</summary>
 	public const string Public = "AuthN.Public";
+
+	/// <summary>Configures <see cref="Public" />.</summary>
+	/// <param name="policy">The builder to configure.</param>
+	[NorsePolicy(Public)]
+	public static void ConfigurePublic(AuthorizationPolicyBuilder policy) =>
+		// "Any principal, anonymous role included" -- which is what Public always meant, and now says. The
+		// prior RequireAssertion(_ => true) passed an unauthenticated empty principal too, which is the hole
+		// the principal-at-the-door design closes.
+		policy.RequireAuthenticatedUser();
 }
