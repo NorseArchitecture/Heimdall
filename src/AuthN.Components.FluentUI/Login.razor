@@ -27,14 +27,34 @@
 @code {
     readonly LoginRequest _request = new() { EmailInput = "" };
 
+    // Authored here, once -- never sourced from the wire. Unauthorized and InvalidCredentials are both
+    // silent by design (Midgard's trailerless decode contract): the server sends zero Errors for either,
+    // so there is nothing more specific to surface and nothing that could leak which half of the
+    // credential pair was wrong.
+    const string CredentialFailureMessage = "Invalid email or password.";
+
     // NavigationResult.NextUrl is always a concrete, server-resolved value -- 2FA challenge, deferred
     // sign-in completion, or a plain "/" -- so the component has no flag to branch on, no route to
     // build, and no default of its own to apply. The seam owns the mechanics; the page states the
     // domain fact: the principal changed, re-establish the session there.
     Task HandleLoginAsync(EditContext editContext)
     {
-        return SubmitAsync(editContext, ct => AuthenticationService.Login(_request, ct),
-            result => SessionTransition.Begin(result));
+        return SubmitAsync(editContext, LoginAsync, result => SessionTransition.Begin(result));
+    }
+
+    // A silent Unauthorized/InvalidCredentials carries no Errors -- letting it fall through to the
+    // generic ServerValidation bridge would render CategoryDisplay's per-category sentence (different
+    // text for each), which is exactly the server-sent-detail comparison the silence ruling forbids.
+    // Recast through Problem.ModelError with the fixed local string instead, so both silent categories
+    // converge on one identical, locally-authored message.
+    async Task<Outcome<NavigationResult>> LoginAsync(CancellationToken cancellationToken)
+    {
+        var outcome = await AuthenticationService.Login(_request, cancellationToken);
+        if (outcome is Failed(var problem) && problem.Errors.Count == 0 &&
+            problem.Category is ErrorCategory.Unauthorized or ErrorCategory.InvalidCredentials)
+            return new Failed(Problem.ModelError(problem.Category, CredentialFailureMessage));
+
+        return outcome;
     }
 
 }
