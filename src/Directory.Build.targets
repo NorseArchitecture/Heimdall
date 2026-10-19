@@ -6,6 +6,12 @@
 		     for exactly the inverse reason.) No realm src project is an executable — hosts live in
 		     the runtime realm only. -->
 		<OutputType>Library</OutputType>
+		<!-- Rides with OutputType: since SDK 11 rc.2 the Web SDK injects dotnet-watch browser-tools
+		     JS initializers into every Debug build, but only an executable gets their endpoints — a
+		     library fails at JS-module manifest time ("scoped css bundles do not have matching
+		     endpoints"). Hot reload is meaningless for a project that is never run. The SDK's own
+		     Debug default is Condition-on-empty and evaluates after this file, so this value wins. -->
+		<EnableHotReloadInRuntimeConfigDevFile>false</EnableHotReloadInRuntimeConfigDevFile>
 		<_ParentTargets>$([MSBuild]::GetPathOfFileAbove('Directory.Build.targets', '$(MSBuildThisFileDirectory)../'))</_ParentTargets>
 	</PropertyGroup>
 	<Import Project="$(_ParentTargets)" Condition="Exists('$(_ParentTargets)')" />
