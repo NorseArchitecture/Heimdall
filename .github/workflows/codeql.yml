@@ -1,0 +1,18 @@
+name: CodeQL
+
+# Weekly baseline scan. Deliberately no push/pull_request trigger: the tag-time gate lives in
+# release.yml, and tests/vendored libs are skipped by .github/codeql/codeql-config.yml.
+
+on:
+  schedule:
+    - cron: '17 4 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  codeql:
+    uses: NorseArchitecture/.github/.github/workflows/codeql.yml@master
+    secrets: inherit
