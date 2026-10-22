@@ -4,6 +4,9 @@ on:
   push:
     branches: [master]
 
+# The job authenticates with BIFROST_TOKEN, never GITHUB_TOKEN.
+permissions: {}
+
 jobs:
   update-bifrost:
     uses: NorseArchitecture/.github/.github/workflows/update-bifrost.yml@master
