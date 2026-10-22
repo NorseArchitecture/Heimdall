@@ -1,7 +1,7 @@
 name: Norse CodeQL config
 
-# Scattered from Ginnungagap. Tests and vendored libraries are skipped outright rather than
-# dismissed alert by alert.
+# Scattered from Ginnungagap. Tests and vendored libraries are skipped outright
+# rather than dismissed alert by alert.
 paths-ignore:
   - '**/tests/**'
   - '**/*.Tests/**'
