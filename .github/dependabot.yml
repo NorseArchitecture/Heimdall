@@ -1,0 +1,30 @@
+version: 2
+
+# One monthly pull request per realm for the third-party GitHub Actions its workflows pin
+# (actions/checkout@v7 and the like), majors included, skipping releases younger than a week so
+# a bad or hijacked tag has time to be pulled. The same shape SkunkWerkx/HyperUuid runs.
+#
+# No nuget entry, deliberately: every realm's third-party package references float (`*`,
+# `11.*-*`), so there is nothing for Dependabot to bump, and the Norse.* packages are moved by
+# sound-gjallarhorn.yml after each realm's tagged release, never by Dependabot. The SDK is pinned
+# once, in global.json (Ginnungagap's config/global.json), and never by a bot. Security updates
+# (Dependabot alerts) are a repository setting, on org-wide, and need none of this file.
+#
+# Canonical — scattered from Ginnungagap's config/ via the 'dependabot' group; realm law never
+# edits it. Naglfar hand-owns its copy (it adds an npm entry), same as its release.yml.
+multi-ecosystem-groups:
+  dependencies:
+    schedule:
+      interval: monthly
+
+updates:
+  - package-ecosystem: github-actions
+    directory: "/"
+    patterns: ["*"]
+    multi-ecosystem-group: dependencies
+    cooldown:
+      default-days: 7
+    ignore:
+      # Ginnungagap's reusable workflows are called at master, deliberately unpinned: a change
+      # there takes effect in every realm at once.
+      - dependency-name: NorseArchitecture/.github
