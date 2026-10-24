@@ -1,7 +1,8 @@
 name: Norse CodeQL config
 
 # Scattered from Ginnungagap. Tests and vendored libraries are skipped outright
-# rather than dismissed alert by alert.
+# rather than dismissed alert by alert. (C# is a traced build of src/ and gen/ only, which never
+# compiles tests, so these paths matter for the interpreted languages.)
 paths-ignore:
   - '**/tests/**'
   - '**/*.Tests/**'
