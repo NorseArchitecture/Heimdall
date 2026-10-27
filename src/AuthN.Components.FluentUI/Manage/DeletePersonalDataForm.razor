@@ -1,0 +1,39 @@
+@inherits OutcomeFormComponentBase
+@inject IAccountService AccountService
+@inject ISessionTransition SessionTransition
+
+<p>
+    <strong>Deleting this data will permanently remove your account, and this cannot be recovered.</strong>
+</p>
+
+<EditForm EditContext="EditContextFor(_request)" OnSubmit="HandleDeletePersonalDataAsync" FormName="authn-delete-personal-data">
+    <FormValidator/>
+    <ModelValidationSummary/>
+    @if (HasPassword)
+    {
+        <FluentTextInput @bind-Value="_request.Password" TextInputType="TextInputType.Password" AutoComplete="current-password" Label="Password" Required="true"/>
+    }
+    <FluentButton Type="ButtonType.Submit" Appearance="ButtonAppearance.Primary" Disabled="IsSubmitting">Delete data and close my account</FluentButton>
+</EditForm>
+
+@code {
+    /// <summary>The form model — the caller's password, left empty when the account has none.</summary>
+    readonly DeletePersonalDataRequest _request = new();
+
+    /// <summary>
+    ///     Whether the account has a local password. The password is always on the wire; the field renders only
+    ///     when one exists, and the server checks it only then (spec §5.6).
+    /// </summary>
+    [Parameter]
+    public bool HasPassword { get; set; }
+
+    /// <summary>
+    ///     Dispatches the erasure. The server signs the caller out on success, so the session ends at the
+    ///     server-resolved URL through the transition seam. A wrong password and a failed shred both render in
+    ///     the summary, through the base.
+    /// </summary>
+    /// <param name="editContext">The form's edit context, validated before dispatch.</param>
+    Task HandleDeletePersonalDataAsync(EditContext editContext) =>
+        SubmitAsync(editContext, ct => AccountService.DeletePersonalData(_request, ct), result => SessionTransition.Begin(result));
+
+}

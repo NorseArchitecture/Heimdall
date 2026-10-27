@@ -1,0 +1,39 @@
+@inherits OutcomeFormComponentBase
+@inject IAccountService AccountService
+@inject ISessionTransition SessionTransition
+
+<EditForm EditContext="EditContextFor(_request)" OnSubmit="HandleSetPhoneNumberAsync" FormName="authn-profile">
+    <FormValidator/>
+    <ModelValidationSummary/>
+    <FluentTextInput Value="@Email" Label="Email" Disabled="true"/>
+    <FluentTextInput @bind-Value="_request.PhoneInput" Label="Phone number" Placeholder="+15551234567"
+        ValidationFieldFor="@((Expression<Func<Result<PhoneNumber>?>>)(() => _request.Phone))"/>
+    <FluentButton Type="ButtonType.Submit" Appearance="ButtonAppearance.Primary" Disabled="IsSubmitting">Save</FluentButton>
+</EditForm>
+
+@code {
+    /// <summary>The form model — the phone buffer, whose setter stamps the wire scalar.</summary>
+    readonly SetPhoneNumberRequest _request = new() { PhoneInput = "" };
+
+    /// <summary>The caller's email, shown read-only — it changes through the email page, never here.</summary>
+    [Parameter, EditorRequired]
+    public string Email { get; set; } = "";
+
+    /// <summary>The caller's current phone number; empty when none is on file.</summary>
+    [Parameter]
+    public string PhoneNumber { get; set; } = "";
+
+    /// <summary>Copies the current <see cref="PhoneNumber" /> into the form buffer, so the form opens on the stored value.</summary>
+    protected override void OnParametersSet() =>
+        _request.PhoneInput = PhoneNumber;
+
+    /// <summary>
+    ///     Dispatches the phone change. An empty buffer stamps a null <c>Phone</c> — the clear signal. The
+    ///     change rotates the security stamp, so success begins a session transition to the server-resolved
+    ///     next hop rather than a soft navigation.
+    /// </summary>
+    /// <param name="editContext">The form's edit context, validated before dispatch.</param>
+    Task HandleSetPhoneNumberAsync(EditContext editContext) =>
+        SubmitAsync(editContext, ct => AccountService.SetPhoneNumber(_request, ct), result => SessionTransition.Begin(result));
+
+}

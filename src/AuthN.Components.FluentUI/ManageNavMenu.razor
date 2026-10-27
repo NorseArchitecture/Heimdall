@@ -1,0 +1,13 @@
+@* ManageNavMenu: static links to every Manage page. No injection — the external-logins link is always
+   shown (spec §6.4); the page itself says when nothing is linked. *@
+@using Microsoft.AspNetCore.Components.Routing
+
+<FluentNav>
+    <FluentNavItem Href="Account/Manage" Match="NavLinkMatch.All">Profile</FluentNavItem>
+    <FluentNavItem Href="Account/Manage/Email">Email</FluentNavItem>
+    <FluentNavItem Href="Account/Manage/ChangePassword">Password</FluentNavItem>
+    <FluentNavItem Href="Account/Manage/ExternalLogins">External logins</FluentNavItem>
+    <FluentNavItem Href="Account/Manage/TwoFactorAuthentication">Two-factor authentication</FluentNavItem>
+    <FluentNavItem Href="Account/Manage/Passkeys">Passkeys</FluentNavItem>
+    <FluentNavItem Href="Account/Manage/PersonalData">Personal data</FluentNavItem>
+</FluentNav>

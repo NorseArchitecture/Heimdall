@@ -1,0 +1,34 @@
+@page "/Account/Manage/DeletePersonalData"
+@inherits OutcomeComponentBase
+@inject IAccountService AccountService
+
+<PageTitle>Delete Personal Data</PageTitle>
+
+<h3>Delete Personal Data</h3>
+
+@if (IsDispatching)
+{
+    <Loader/>
+}
+else if (Problem is not null)
+{
+    <div class="alert alert-danger" role="alert">Your account settings could not be loaded.</div>
+}
+else if (_status is not null)
+{
+    <DeletePersonalDataForm HasPassword="@_status.HasPassword"/>
+}
+
+@code {
+    /// <summary>The caller's account state, loaded once on initialization. Null until the load succeeds.</summary>
+    AccountStatusResponse? _status;
+
+    /// <summary>
+    ///     Loads the account status. A failure renders in place through the base's <c>Problem</c>; success hands
+    ///     <see cref="AccountStatusResponse.HasPassword" /> to <see cref="DeletePersonalDataForm" />, which renders
+    ///     the password field only when a password exists.
+    /// </summary>
+    protected override Task OnInitializedAsync() =>
+        DispatchAsync(ct => AccountService.GetAccountStatus(ct), status => _status = status);
+
+}
