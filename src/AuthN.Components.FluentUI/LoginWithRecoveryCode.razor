@@ -1,0 +1,46 @@
+@page "/Account/LoginWithRecoveryCode"
+@layout GateLayout
+@inject NavigationManager Navigation
+
+<RecoveryCodeForm Challenge="@_challenge"/>
+
+@code {
+    /// <summary>The challenge token held for the form — survives the query being stripped from the URL.</summary>
+    string? _challenge;
+
+    /// <summary>Whether a freshly read token still has to be stripped from the URL after this render.</summary>
+    bool _stripPending;
+
+    /// <summary>The <c>challenge</c> query value the two-factor page's link carries; null once stripped.</summary>
+    [SupplyParameterFromQuery(Name = "challenge")]
+    public string? Challenge { get; set; }
+
+    /// <summary>
+    ///     Takes a new token when one arrives. A null or empty query — the stripped URL this page navigated
+    ///     to itself — leaves the held token alone; a different non-empty value replaces it and re-arms the
+    ///     strip, so a second challenge on the same component instance is honored and stripped too.
+    /// </summary>
+    protected override void OnParametersSet()
+    {
+        if (!string.IsNullOrEmpty(Challenge) && Challenge != _challenge)
+        {
+            _challenge = Challenge;
+            _stripPending = true;
+        }
+    }
+
+    /// <summary>
+    ///     Replaces the history entry with the bare route once the token has been read, so the token does not
+    ///     linger in the address bar or history.
+    /// </summary>
+    /// <param name="firstRender">Unused — the strip is driven by the pending flag, not the first render.</param>
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (!_stripPending)
+            return;
+
+        _stripPending = false;
+        Navigation.NavigateTo("Account/LoginWithRecoveryCode", new NavigationOptions { ReplaceHistoryEntry = true });
+    }
+
+}

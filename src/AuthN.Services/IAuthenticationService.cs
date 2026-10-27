@@ -37,6 +37,55 @@ public interface IAuthenticationService
 	Task<Outcome<BoolResponse>> EmailExists(EmailExistsRequest request, CancellationToken cancellationToken = default);
 
 	/// <summary>
+	///     Completes a two-factor sign-in with an authenticator code — replaces the scaffold's
+	///     <c>LoginWith2fa.razor</c>. The code is stripped of spaces and hyphens server-side.
+	/// </summary>
+	[OperationContract]
+	Task<Outcome<NavigationResult>> TwoFactorSignIn(TwoFactorSignInRequest request, CancellationToken cancellationToken = default);
+
+	/// <summary>
+	///     Completes a two-factor sign-in with a recovery code — replaces the scaffold's
+	///     <c>LoginWithRecoveryCode.razor</c>. Never persistent.
+	/// </summary>
+	[OperationContract]
+	Task<Outcome<NavigationResult>> RecoveryCodeSignIn(RecoveryCodeSignInRequest request, CancellationToken cancellationToken = default);
+
+	/// <summary>
+	///     Sends a password-reset link — replaces the scaffold's <c>ForgotPassword.razor</c>.
+	///     Anti-enumeration: always navigates to <c>/Account/ForgotPasswordConfirmation</c>; unknown,
+	///     erased, and unconfirmed addresses answer identically.
+	/// </summary>
+	[OperationContract]
+	Task<Outcome<NavigationResult>> ForgotPassword(ForgotPasswordRequest request, CancellationToken cancellationToken = default);
+
+	/// <summary>
+	///     Resets a password with the emailed code — replaces the scaffold's <c>ResetPassword.razor</c>.
+	///     Anti-enumeration: an unknown or erased user, a malformed token, and an invalid token against a
+	///     real account all answer one <c>InvalidCredentials</c> ("The reset link is invalid or has
+	///     expired."); only a genuine reset answers <c>/Account/ResetPasswordConfirmation</c>.
+	/// </summary>
+	[OperationContract]
+	Task<Outcome<NavigationResult>> ResetPassword(ResetPasswordRequest request, CancellationToken cancellationToken = default);
+
+	/// <summary>Confirms an account's email address — replaces the scaffold's <c>ConfirmEmail.razor</c>.</summary>
+	[OperationContract]
+	Task<Outcome<BoolResponse>> ConfirmEmail(ConfirmEmailRequest request, CancellationToken cancellationToken = default);
+
+	/// <summary>
+	///     Confirms a pending email change — replaces the scaffold's <c>ConfirmEmailChange.razor</c>.
+	///     Refreshes the sign-in when the caller is that user; otherwise navigates to <c>/Account/Login</c>.
+	/// </summary>
+	[OperationContract]
+	Task<Outcome<NavigationResult>> ConfirmEmailChange(ConfirmEmailChangeRequest request, CancellationToken cancellationToken = default);
+
+	/// <summary>
+	///     Re-sends the email-confirmation link — replaces the scaffold's
+	///     <c>ResendEmailConfirmation.razor</c>. Always acknowledged, known address or not.
+	/// </summary>
+	[OperationContract]
+	Task<Outcome<BoolResponse>> ResendEmailConfirmation(ResendEmailConfirmationRequest request, CancellationToken cancellationToken = default);
+
+	/// <summary>
 	///     Logs out the currently authenticated user. No request DTO — the caller's authenticated cookie
 	///     identifies who's logging out, and protobuf-net.Grpc supports a <see cref="CancellationToken" />-only
 	///     operation contract end to end (spike-verified: real <c>TestServer</c>, real HTTP/2, real

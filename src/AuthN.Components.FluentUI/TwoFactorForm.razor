@@ -1,0 +1,82 @@
+@inherits OutcomeFormComponentBase
+@inject IAuthenticationService AuthenticationService
+@inject ISessionTransition SessionTransition
+
+<PageTitle>Two-factor authentication</PageTitle>
+
+<h1>Two-factor authentication</h1>
+
+@if (string.IsNullOrEmpty(Challenge))
+{
+    <p role="alert" class="norse-challenge-expired">This sign-in attempt has expired. <a href="Account/Login">Start again</a>.</p>
+}
+else
+{
+    <p class="gate-subtitle">Enter the code from your authenticator app.</p>
+
+    <EditForm EditContext="EditContextFor(_request)" OnSubmit="HandleTwoFactorSignInAsync" FormName="authn-login-with-2fa">
+        <FormValidator/>
+        <ModelValidationSummary/>
+        <FluentTextInput @bind-Value="_request.Code" AutoComplete="one-time-code" Label="Authenticator code" Required="true"/>
+        <FluentCheckbox @bind-Value="_request.RememberMachine" Label="Remember this machine"/>
+        <FluentButton Type="ButtonType.Submit" Appearance="ButtonAppearance.Primary" Disabled="IsSubmitting">Log in</FluentButton>
+    </EditForm>
+
+    <p class="gate-cross-link">Don't have access to your authenticator device? You can
+        <a href="Account/LoginWithRecoveryCode?challenge=@Uri.EscapeDataString(Challenge)">log in with a recovery code</a>.
+    </p>
+
+    <p class="gate-cross-link">Code not working? <a href="Account/Login">Start again</a>.</p>
+}
+
+@code {
+    /// <summary>
+    ///     Authored here, once — never sourced from the wire. See <see cref="TwoFactorSignInAsync" /> for why
+    ///     every credential failure converges on it.
+    /// </summary>
+    const string CredentialFailureMessage = "Invalid authenticator code.";
+
+    /// <summary>The form model — the opaque challenge, the typed code, and the remember-machine choice.</summary>
+    readonly TwoFactorSignInRequest _request = new();
+
+    /// <summary>
+    ///     The opaque two-factor challenge token <c>Login</c> handed back in its <c>NextUrl</c>. A plain
+    ///     parameter, not a query binding, so the story catalog and bUnit can instantiate the form directly;
+    ///     the routable <see cref="LoginWith2fa" /> shim reads the query and passes it here. Null or empty
+    ///     renders the expired state and no form.
+    /// </summary>
+    [Parameter]
+    public string? Challenge { get; set; }
+
+    /// <summary>Copies the current <see cref="Challenge" /> into the form model, so a new token always submits.</summary>
+    protected override void OnParametersSet() =>
+        _request.Challenge = Challenge ?? "";
+
+    /// <summary>
+    ///     Dispatches the second-factor sign-in. The principal changes on success, so the session transition
+    ///     re-establishes the session at the server-resolved next hop.
+    /// </summary>
+    /// <param name="editContext">The form's edit context, validated before dispatch.</param>
+    Task HandleTwoFactorSignInAsync(EditContext editContext) =>
+        SubmitAsync(editContext, TwoFactorSignInAsync, result => SessionTransition.Begin(result));
+
+    /// <summary>
+    ///     Calls the service and recasts every credential failure to the one local message. The same failure
+    ///     reaches this form in two shapes — in-process as the handler's <c>InvalidCredentials</c> carrying its
+    ///     own model-error text, and over gRPC as a trailerless <c>Unauthorized</c> with no errors — so the
+    ///     recast keys on the category alone, regardless of <c>Errors</c>. <c>LockedOut</c> and
+    ///     <c>NotAllowed</c> pass through and render their server text unchanged.
+    /// </summary>
+    /// <param name="cancellationToken">The component-lifetime token the dispatch runs under.</param>
+    /// <returns>The service's outcome, with credential failures recast.</returns>
+    async Task<Outcome<NavigationResult>> TwoFactorSignInAsync(CancellationToken cancellationToken)
+    {
+        var outcome = await AuthenticationService.TwoFactorSignIn(_request, cancellationToken);
+        if (outcome is Failed(var problem) &&
+            problem.Category is ErrorCategory.Unauthorized or ErrorCategory.InvalidCredentials)
+            return new Failed(Problem.ModelError(problem.Category, CredentialFailureMessage));
+
+        return outcome;
+    }
+
+}
