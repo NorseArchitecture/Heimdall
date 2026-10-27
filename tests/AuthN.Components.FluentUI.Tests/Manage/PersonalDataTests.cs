@@ -1,10 +1,11 @@
 using Bunit;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.FluentUI.AspNetCore.Components;
+using Norse.AuthN.Components.FluentUI.Manage;
 using Norse.AuthN.Services;
 using Norse.Abstractions.Contracts;
 
-namespace Norse.AuthN.Components.FluentUI.Tests;
+namespace Norse.AuthN.Components.FluentUI.Tests.Manage;
 
 public sealed class PersonalDataTests : BunitContext
 {

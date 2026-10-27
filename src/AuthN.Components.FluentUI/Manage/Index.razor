@@ -1,0 +1,33 @@
+@page "/Account/Manage"
+@inherits OutcomeComponentBase
+@inject IIdentityService IdentityService
+
+<PageTitle>Profile</PageTitle>
+
+<h3>Profile</h3>
+
+@if (IsDispatching)
+{
+    <Loader/>
+}
+else if (Problem is not null)
+{
+    <div class="alert alert-danger" role="alert">Your profile could not be loaded.</div>
+}
+else if (_data is not null)
+{
+    <ProfileForm Email="@_data.Email" PhoneNumber="@_data.PhoneNumber"/>
+}
+
+@code {
+    /// <summary>The caller's own email and phone, loaded once on initialization. Null until the load succeeds.</summary>
+    PersonalDataResponse? _data;
+
+    /// <summary>
+    ///     Loads the caller's profile through the self-disclosure call. A failure renders in place through the
+    ///     base's <c>Problem</c>; success hands the facts to <see cref="ProfileForm" />.
+    /// </summary>
+    protected override Task OnInitializedAsync() =>
+        DispatchAsync(ct => IdentityService.GetMyPersonalDataAsync(new(), ct), data => _data = data);
+
+}

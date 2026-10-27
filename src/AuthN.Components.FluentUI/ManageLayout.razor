@@ -1,0 +1,41 @@
+@* ManageLayout: the account-management chrome every Manage/ page renders inside, nested in the host's
+   app shell (IAppShellLayout) so this realm never names the host's concrete layout. Lives at the
+   project root, never in Manage/ — the folder _Imports stamps @layout ManageLayout, and a layout
+   stamped with itself is Blazor's infinite layout loop. The status banner reads the redirect's
+   "status" key and resolves it through ManageStatus; the text itself never crosses the query string. *@
+@inherits LayoutComponentBase
+@using System.Diagnostics.CodeAnalysis
+@using Norse.Abstractions.Components.Primitives
+@* IL2110/IL2111: the Razor-generated OpenComponent<LayoutView> reaches LayoutView's DAM-annotated Layout
+   setter through Blazor's parameter-setting reflection — the same pattern the framework's own RouteView
+   suppresses for its LayoutView render. The host's app-shell layout is itself a rendered component in
+   the host's assembly, so its members survive trimming; the suppression is scoped to this one type. *@
+@attribute [UnconditionalSuppressMessage("Trimming", "IL2110", Justification = "Mirrors RouteView: the LayoutView render is framework-preserved; the host's shell layout is a rooted component.")]
+@attribute [UnconditionalSuppressMessage("Trimming", "IL2111", Justification = "Mirrors RouteView: the LayoutView render is framework-preserved; the host's shell layout is a rooted component.")]
+@inject IAppShellLayout AppShell
+
+<LayoutView Layout="@AppShell.LayoutType">
+    <h1>Manage your account</h1>
+
+    <div>
+        <h2>Change your account settings</h2>
+        <StatusMessage Message="@ManageStatus.Text(Status)"/>
+        <FluentGrid>
+            <FluentGridItem sm="3">
+                <ManageNavMenu/>
+            </FluentGridItem>
+
+            <FluentGridItem sm="6">
+                @Body
+            </FluentGridItem>
+        </FluentGrid>
+    </div>
+</LayoutView>
+
+@code {
+
+    /// <summary>The <c>status</c> query key a Manage page redirected with; see <see cref="ManageStatus" />.</summary>
+    [SupplyParameterFromQuery(Name = "status")]
+    public string? Status { get; set; }
+
+}

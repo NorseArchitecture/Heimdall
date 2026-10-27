@@ -1,0 +1,107 @@
+@page "/Account/Manage/ExternalLogins"
+@inherits OutcomeComponentBase
+@inject IAccountService AccountService
+@inject ISessionTransition SessionTransition
+
+<PageTitle>Manage your external logins</PageTitle>
+
+<h3>Manage your external logins</h3>
+
+@if (_logins is null)
+{
+    @if (IsDispatching)
+    {
+        <Loader/>
+    }
+    else if (Problem is not null)
+    {
+        <div class="alert alert-danger" role="alert">Your external logins could not be loaded.</div>
+    }
+}
+else
+{
+    @if (Problem is not null)
+    {
+        <div class="alert alert-danger" role="alert">
+            @foreach (var message in Messages(Problem))
+            {
+                <p>@message</p>
+            }
+        </div>
+    }
+
+    @if (_logins.Logins.Length > 0)
+    {
+        <h3>Registered logins</h3>
+        <table class="table">
+            <tbody>
+            @foreach (var login in _logins.Logins)
+            {
+                <tr>
+                    <td>@login.DisplayName</td>
+                    <td>
+                        @if (_logins.CanRemove)
+                        {
+                            <FluentButton Appearance="ButtonAppearance.Primary" Disabled="IsDispatching" data-provider="@login.LoginProvider"
+                                          Title="@($"Remove this {login.DisplayName} login from your account")"
+                                          OnClick="() => RemoveAsync(login)">Remove</FluentButton>
+                        }
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    }
+
+    @if (_logins.AvailableProviders.Length > 0)
+    {
+        <h4>Add another service to log in</h4>
+        <p>
+            @foreach (var provider in _logins.AvailableProviders)
+            {
+                <FluentLink Href="@($"Account/Manage/LinkExternalLogin?provider={Uri.EscapeDataString(provider.Name)}")"
+                            Title="@($"Log in using your {provider.DisplayName} account")">@provider.DisplayName</FluentLink>
+            }
+        </p>
+    }
+
+    @if (_logins.Logins.Length == 0 && _logins.AvailableProviders.Length == 0)
+    {
+        <p>No external logins are linked and none are available.</p>
+    }
+}
+
+@code {
+    /// <summary>The caller's linked logins and linkable providers, loaded once on initialization. Null until the load succeeds.</summary>
+    ExternalLoginsResponse? _logins;
+
+    /// <summary>
+    ///     Loads the linked logins and the providers still available. A failure renders in place through the
+    ///     base's <c>Problem</c>; success renders the two lists.
+    /// </summary>
+    protected override Task OnInitializedAsync() =>
+        DispatchAsync(ct => AccountService.GetExternalLogins(ct), logins => _logins = logins);
+
+    /// <summary>
+    ///     Click-to-remove, never a state-changing GET: a bare render removes nothing. The base's dispatch owns the
+    ///     disposal discipline and the in-flight guard (the button binds <c>IsDispatching</c>, so a double click
+    ///     sends one request). Success begins the session transition — the removal refreshes the sign-in; a
+    ///     refusal (the server's last-sign-in-method guard, §5.9) lands in <c>Problem</c> and renders the server's
+    ///     text in place.
+    /// </summary>
+    Task RemoveAsync(ExternalLoginEntry login) =>
+        DispatchAsync(
+            ct => AccountService.RemoveExternalLogin(new() { LoginProvider = login.LoginProvider, ProviderKey = login.ProviderKey }, ct),
+            result => SessionTransition.Begin(result));
+
+    /// <summary>
+    ///     The refusal's messages, or a generic line when the failure carries none (a gRPC-decoded fault arrives
+    ///     without errors).
+    /// </summary>
+    static IEnumerable<string> Messages(Problem problem)
+    {
+        var messages = problem.Errors.Values.SelectMany(m => m).ToList();
+        return messages.Count > 0 ? messages : ["The external login was not removed."];
+    }
+
+}

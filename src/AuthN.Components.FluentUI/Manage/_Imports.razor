@@ -1,0 +1,4 @@
+@using Microsoft.AspNetCore.Authorization
+@using Norse.Abstractions.Components.Primitives
+@layout ManageLayout
+@attribute [Authorize(Policy = AuthNPolicies.Account)]

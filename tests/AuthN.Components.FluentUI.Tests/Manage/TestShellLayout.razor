@@ -1,0 +1,5 @@
+@inherits LayoutComponentBase
+
+@* Test-only app shell: a marker div around @Body, so a test can count how many times the host
+   chrome wraps a page. *@
+<div data-test-shell>@Body</div>

@@ -1,0 +1,79 @@
+@inherits OutcomeFormComponentBase
+@inject IAccountService AccountService
+@inject IAuthenticationService AuthenticationService
+
+<StatusMessage Message="@_message"/>
+
+<FluentTextInput Value="@Email" Label="Email" Disabled="true">
+    <EndTemplate>
+        @if (EmailConfirmed)
+        {
+            <span>✓</span>
+        }
+    </EndTemplate>
+</FluentTextInput>
+@if (!EmailConfirmed)
+{
+    <FluentButton Type="ButtonType.Button" Disabled="_sending" OnClick="HandleSendVerificationAsync">Send verification email</FluentButton>
+}
+
+<EditForm EditContext="EditContextFor(_request)" OnSubmit="HandleChangeEmailAsync" FormName="authn-change-email">
+    <FormValidator/>
+    <ModelValidationSummary/>
+    <FluentTextInput @bind-Value="_request.NewEmailInput" Label="New email"
+        ValidationFieldFor="@((Expression<Func<Result<EmailAddress>>>)(() => _request.NewEmail))"/>
+    <FluentButton Type="ButtonType.Submit" Appearance="ButtonAppearance.Primary" Disabled="IsSubmitting">Change email</FluentButton>
+</EditForm>
+
+@code {
+    /// <summary>The form model — the new-email buffer, whose setter stamps the wire scalar.</summary>
+    readonly ChangeEmailRequest _request = new() { NewEmailInput = "" };
+
+    /// <summary>The in-place status line — the change link or verification acknowledgment, or the resend error.</summary>
+    string? _message;
+
+    /// <summary>Whether a verification re-send is in flight; disables its button against a double send.</summary>
+    bool _sending;
+
+    /// <summary>The caller's current email, shown read-only and used as the verification re-send target.</summary>
+    [Parameter, EditorRequired]
+    public string Email { get; set; } = "";
+
+    /// <summary>Whether the current email is confirmed — marks the field and hides the verification button.</summary>
+    [Parameter]
+    public bool EmailConfirmed { get; set; }
+
+    /// <summary>
+    ///     Re-sends the confirmation link to the current email. The server acknowledges every address
+    ///     identically, so the result renders in place as a status line — no navigation.
+    /// </summary>
+    async Task HandleSendVerificationAsync()
+    {
+        if (_sending)
+            return;
+
+        _sending = true;
+        try
+        {
+            var outcome = await AuthenticationService.ResendEmailConfirmation(new() { EmailInput = Email }, CancellationToken);
+            _message = outcome is Success<BoolResponse> ?
+                "Verification email sent. Please check your email." :
+                "Error: The verification email could not be sent.";
+        }
+        finally
+        {
+            _sending = false;
+        }
+    }
+
+    /// <summary>
+    ///     Dispatches the email change. The server only sends a confirmation link to the new address, so
+    ///     success renders the sent message in place — no transition, no navigation. A server rejection
+    ///     (an unchanged email) lands on the new-email field through the base.
+    /// </summary>
+    /// <param name="editContext">The form's edit context, validated before dispatch.</param>
+    Task HandleChangeEmailAsync(EditContext editContext) =>
+        SubmitAsync(editContext, ct => AccountService.ChangeEmail(_request, ct),
+            _ => _message = "Confirmation link to change email sent. Please check your email.");
+
+}

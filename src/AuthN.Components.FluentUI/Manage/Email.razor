@@ -1,0 +1,44 @@
+@page "/Account/Manage/Email"
+@inherits OutcomeComponentBase
+@inject IAccountService AccountService
+@inject IIdentityService IdentityService
+
+<PageTitle>Manage email</PageTitle>
+
+<h3>Manage email</h3>
+
+@if (IsDispatching)
+{
+    <Loader/>
+}
+else if (Problem is not null)
+{
+    <div class="alert alert-danger" role="alert">Your email settings could not be loaded.</div>
+}
+else if (_status is not null && _email is not null)
+{
+    <ChangeEmailForm Email="@_email" EmailConfirmed="@_status.EmailConfirmed"/>
+}
+
+@code {
+    /// <summary>The caller's account state, loaded first. Null until that load succeeds.</summary>
+    AccountStatusResponse? _status;
+
+    /// <summary>The caller's current email, loaded second. Null until that load succeeds.</summary>
+    string? _email;
+
+    /// <summary>
+    ///     Loads the account status, then — only once it succeeds — the caller's email through the
+    ///     self-disclosure call. A failure on either renders in place through the base's <c>Problem</c>;
+    ///     success on both hands the facts to <see cref="ChangeEmailForm" />.
+    /// </summary>
+    protected override async Task OnInitializedAsync()
+    {
+        await DispatchAsync(ct => AccountService.GetAccountStatus(ct), status => _status = status);
+        if (_status is null)
+            return;
+
+        await DispatchAsync(ct => IdentityService.GetMyPersonalDataAsync(new(), ct), data => _email = data.Email);
+    }
+
+}
