@@ -1,0 +1,58 @@
+@inherits OutcomeComponentBase
+@inject IAuthenticationService AuthenticationService
+
+<PageTitle>Confirm email</PageTitle>
+
+<h1>Confirm your email address</h1>
+
+@if (string.IsNullOrEmpty(UserId) || string.IsNullOrEmpty(Code))
+{
+    <p role="alert" class="norse-challenge-expired">This confirmation link is invalid.</p>
+}
+else if (_confirmed)
+{
+    <p role="alert">Thank you for confirming your email.</p>
+    <p><a href="Account/Login">Log in</a></p>
+}
+else
+{
+    @if (Problem is not null)
+    {
+        <div class="alert alert-danger">
+            Error confirming your email.
+            @if (Problem.Category is ErrorCategory.NotFound)
+            {
+                <text> We couldn't find that account.</text>
+            }
+        </div>
+    }
+
+    <FluentButton Appearance="ButtonAppearance.Primary" Disabled="IsDispatching" OnClick="HandleConfirmAsync">Confirm</FluentButton>
+}
+
+@code {
+    /// <summary>Whether the confirmation succeeded — swaps the button for the thank-you message.</summary>
+    bool _confirmed;
+
+    /// <summary>
+    ///     The opaque user identifier from the emailed link. A plain parameter, not a query binding, so the
+    ///     story catalog and bUnit can instantiate the panel directly; the routable <see cref="ConfirmEmail" />
+    ///     shim reads the query and passes it here. Null or empty renders the invalid-link state.
+    /// </summary>
+    [Parameter]
+    public string? UserId { get; set; }
+
+    /// <summary>The opaque confirmation code from the emailed link; null or empty renders the invalid-link state.</summary>
+    [Parameter]
+    public string? Code { get; set; }
+
+    /// <summary>
+    ///     Click-to-confirm, never on load: Blazor prerendering runs <c>OnInitializedAsync</c> twice and mail
+    ///     scanners prefetch links, so the single-use code is consumed only by an explicit click. Failure
+    ///     renders through the base's <c>Problem</c>; success swaps in the thank-you message.
+    /// </summary>
+    Task HandleConfirmAsync() =>
+        DispatchAsync(ct => AuthenticationService.ConfirmEmail(new() { UserId = UserId!, Code = Code! }, ct),
+            _ => _confirmed = true);
+
+}

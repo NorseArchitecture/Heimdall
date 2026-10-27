@@ -1,0 +1,52 @@
+@inherits OutcomeComponentBase
+@inject IAuthenticationService AuthenticationService
+@inject ISessionTransition SessionTransition
+
+<PageTitle>Confirm email change</PageTitle>
+
+<h1>Confirm your email change</h1>
+
+@if (string.IsNullOrEmpty(UserId) || string.IsNullOrEmpty(Email) || string.IsNullOrEmpty(Code))
+{
+    <p role="alert" class="norse-challenge-expired">This confirmation link is invalid.</p>
+}
+else
+{
+    @if (Problem is not null)
+    {
+        <div class="alert alert-danger">Error changing email.</div>
+    }
+
+    <FluentButton Appearance="ButtonAppearance.Primary" Disabled="IsDispatching" OnClick="HandleConfirmAsync">Confirm email change</FluentButton>
+}
+
+@code {
+    /// <summary>
+    ///     The opaque user identifier from the emailed link. A plain parameter, not a query binding, so the
+    ///     story catalog and bUnit can instantiate the panel directly; the routable
+    ///     <see cref="ConfirmEmailChange" /> shim reads the query and passes it here. Null or empty renders the
+    ///     invalid-link state.
+    /// </summary>
+    [Parameter]
+    public string? UserId { get; set; }
+
+    /// <summary>The new email address from the emailed link; null or empty renders the invalid-link state.</summary>
+    [Parameter]
+    public string? Email { get; set; }
+
+    /// <summary>The opaque change code from the emailed link; null or empty renders the invalid-link state.</summary>
+    [Parameter]
+    public string? Code { get; set; }
+
+    /// <summary>
+    ///     Click-to-confirm, never on load: Blazor prerendering runs <c>OnInitializedAsync</c> twice and mail
+    ///     scanners prefetch links, so the single-use code is consumed only by an explicit click. The email
+    ///     (and with it the username) changes on success, so the session transition re-establishes the session
+    ///     at the server-resolved next hop; failure renders through the base's <c>Problem</c>.
+    /// </summary>
+    Task HandleConfirmAsync() =>
+        DispatchAsync(
+            ct => AuthenticationService.ConfirmEmailChange(new() { UserId = UserId!, EmailInput = Email!, Code = Code! }, ct),
+            result => SessionTransition.Begin(result));
+
+}

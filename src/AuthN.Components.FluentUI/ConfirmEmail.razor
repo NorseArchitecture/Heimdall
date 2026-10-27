@@ -1,0 +1,15 @@
+@page "/Account/ConfirmEmail"
+@layout GateLayout
+
+<ConfirmEmailPanel UserId="@UserId" Code="@Code"/>
+
+@code {
+    /// <summary>The <c>userId</c> query value the emailed confirmation link carries.</summary>
+    [SupplyParameterFromQuery(Name = "userId")]
+    public string? UserId { get; set; }
+
+    /// <summary>The <c>code</c> query value the emailed confirmation link carries.</summary>
+    [SupplyParameterFromQuery(Name = "code")]
+    public string? Code { get; set; }
+
+}

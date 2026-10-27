@@ -12,7 +12,8 @@
 <EditForm EditContext="EditContextFor(_request)" OnSubmit="HandleRegisterAsync" FormName="authn-register">
     <FormValidator/>
     <ModelValidationSummary/>
-    <FluentTextInput @bind-Value="_request.EmailInput" Label="Email" Required="true"/>
+    <FluentTextInput @bind-Value="_request.EmailInput" Label="Email" Required="true"
+        ValidationFieldFor="@((Expression<Func<Result<EmailAddress>>>)(() => _request.Email))"/>
     <FluentTextInput @bind-Value="_request.Password" TextInputType="TextInputType.Password" Label="Password" Required="true"/>
     <FluentButton Type="ButtonType.Submit" Appearance="ButtonAppearance.Primary" Disabled="IsSubmitting">Create account</FluentButton>
 </EditForm>

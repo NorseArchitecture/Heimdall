@@ -21,9 +21,11 @@ namespace Norse.AuthN.Components;
 ///     future business rule works against the domain struct, never a raw string: the parser owns
 ///     format truth, the validator owns business truth, no rule exists twice (the former
 ///     <c>EmailAddress()</c> regex — a second format authority — is gone). <c>WithName</c> carries
-///     the buffer's name for message display only; field-change selection on blur is the
-///     <c>StampFieldBridge</c>'s job (the buffer's change is echoed as the stamp's), so
-///     <c>PropertyName</c> — and therefore server error keys — stay <c>Email</c>, wire-stable.
+///     the buffer's name for message display only; field-change selection on blur is
+///     <c>OutcomeFormComponentBase.EditContextFor</c>'s field-change echo (the buffer's change is
+///     echoed as the stamp's), and the email input names the stamp in <c>ValidationFieldFor</c> so
+///     the message renders there. <c>PropertyName</c> — and therefore server error keys — stay
+///     <c>Email</c>, wire-stable.
 /// </summary>
 public sealed class LoginRequestValidator : AbstractValidator<LoginRequest>
 {

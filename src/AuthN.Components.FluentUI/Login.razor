@@ -12,7 +12,8 @@
 <EditForm EditContext="EditContextFor(_request)" OnSubmit="HandleLoginAsync" FormName="authn-login">
     <FormValidator/>
     <ModelValidationSummary/>
-    <FluentTextInput @bind-Value="_request.EmailInput" Label="Email" Required="true"/>
+    <FluentTextInput @bind-Value="_request.EmailInput" Label="Email" Required="true"
+        ValidationFieldFor="@((Expression<Func<Result<EmailAddress>>>)(() => _request.Email))"/>
     <FluentTextInput @bind-Value="_request.Password" TextInputType="TextInputType.Password" Label="Password" Required="true">
         <LabelTemplate>
             <a class="gate-forgot-password" href="Account/ForgotPassword">Forgot password?</a>

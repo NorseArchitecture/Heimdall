@@ -17,8 +17,8 @@ namespace Norse.AuthN.Services;
 public static class IdentityPolicies
 {
 	/// <summary>
-	///     Satisfied only by the authenticated principal disclosing their own row — decidable from the principal alone
-	///     (spec §6.1).
+	///     Satisfied only by an authenticated, non-anonymous principal disclosing their own row — decidable from the
+	///     principal alone (spec §6.1).
 	/// </summary>
 	public const string Self = "Identity.Self";
 
@@ -28,11 +28,16 @@ public static class IdentityPolicies
 	/// <summary>The role name <see cref="MaskedDisclosure" /> requires.</summary>
 	public const string SystemRole = "System";
 
-	/// <summary>Configures <see cref="Self" />.</summary>
+	/// <summary>
+	///     Configures <see cref="Self" /> — hardened identically to <see cref="AuthNPolicies.Account" />.
+	///     The anonymous-cookie principal is <em>authenticated</em> (spec
+	///     2026-10-26-identity-account-lifecycle-over-grpc §4.4), so <c>RequireAuthenticatedUser()</c>
+	///     alone would admit it; the <see cref="NorseRoles.Anonymous" /> role is excluded explicitly.
+	/// </summary>
 	/// <param name="policy">The builder to configure.</param>
 	[NorsePolicy(Self)]
 	public static void ConfigureSelf(AuthorizationPolicyBuilder policy) =>
-		policy.RequireAuthenticatedUser();
+		policy.RequireAuthenticatedUser().RequireAssertion(static context => !context.User.IsInRole(NorseRoles.Anonymous));
 
 	/// <summary>Configures <see cref="MaskedDisclosure" />.</summary>
 	/// <param name="policy">The builder to configure.</param>

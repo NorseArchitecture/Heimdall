@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using System.Reflection;
+using System.Runtime.Serialization;
 using System.ServiceModel;
 using Norse.Abstractions.Contracts;
 
@@ -12,6 +13,17 @@ namespace Norse.AuthN.Services.Tests;
 /// </summary>
 public sealed class RequestContractTests
 {
+	static Type[] NewRecords =>
+	[
+		typeof(TwoFactorSignInRequest), typeof(RecoveryCodeSignInRequest), typeof(ForgotPasswordRequest),
+		typeof(ResetPasswordRequest), typeof(ConfirmEmailRequest), typeof(ConfirmEmailChangeRequest),
+		typeof(ResendEmailConfirmationRequest)
+	];
+
+	static MethodInfo Operation(Type request) =>
+		typeof(IAuthenticationService).GetMethods()
+			.Single(m => m.GetParameters() is [var first, ..] && first.ParameterType == request);
+
 	[Fact]
 	void AuthN_Services_does_not_reference_the_mediator_law_assembly()
 	{
@@ -34,7 +46,9 @@ public sealed class RequestContractTests
 			[
 				typeof(LoginRequest), typeof(RegisterRequest), typeof(GetMyPersonalDataRequest),
 				typeof(GetMaskedPersonalDataRequest), typeof(PersonalDataResponse), typeof(MaskedPersonalDataResponse),
-				typeof(EmailExistsRequest)
+				typeof(EmailExistsRequest), typeof(TwoFactorSignInRequest), typeof(RecoveryCodeSignInRequest),
+				typeof(ForgotPasswordRequest), typeof(ResetPasswordRequest), typeof(ConfirmEmailRequest),
+				typeof(ConfirmEmailChangeRequest), typeof(ResendEmailConfirmationRequest)
 			])
 			wireType.GetCustomAttribute<AuthorizeAttribute>()
 				.ShouldBeNull(
@@ -68,5 +82,35 @@ public sealed class RequestContractTests
 		foreach (var method in contracts.SelectMany(c => c.GetMethods()))
 			method.GetCustomAttribute<OperationContractAttribute>()
 				.ShouldNotBeNull($"{method.DeclaringType!.Name}.{method.Name} is missing [OperationContract]");
+	}
+
+	[Fact]
+	void The_seven_anonymous_lifecycle_operations_are_declared_with_the_ruled_return_types()
+	{
+		Type[] navigation = [typeof(TwoFactorSignInRequest), typeof(RecoveryCodeSignInRequest), typeof(ForgotPasswordRequest), typeof(ResetPasswordRequest), typeof(ConfirmEmailChangeRequest)];
+		Type[] acknowledgment = [typeof(ConfirmEmailRequest), typeof(ResendEmailConfirmationRequest)];
+		foreach (var request in navigation)
+			Operation(request).ReturnType.ShouldBe(typeof(Task<Outcome<NavigationResult>>));
+		foreach (var request in acknowledgment)
+			Operation(request).ReturnType.ShouldBe(typeof(Task<Outcome<BoolResponse>>));
+	}
+
+	[Fact]
+	void Every_wire_record_is_a_data_contract_with_ordered_members()
+	{
+		foreach (var wireType in NewRecords)
+		{
+			wireType.GetCustomAttribute<DataContractAttribute>().ShouldNotBeNull(wireType.Name);
+			wireType.GetProperties().Where(p => p.Name != "EmailInput")
+				.Select(p => p.GetCustomAttribute<DataMemberAttribute>()?.Order)
+				.ShouldAllBe(order => order.HasValue, wireType.Name);
+		}
+	}
+
+	[Fact]
+	void Email_input_buffers_are_never_serialized()
+	{
+		foreach (var wireType in new[] { typeof(ForgotPasswordRequest), typeof(ResetPasswordRequest), typeof(ConfirmEmailChangeRequest), typeof(ResendEmailConfirmationRequest) })
+			wireType.GetProperty("EmailInput")!.GetCustomAttribute<DataMemberAttribute>().ShouldBeNull(wireType.Name);
 	}
 }

@@ -1,0 +1,19 @@
+@page "/Account/ConfirmEmailChange"
+@layout GateLayout
+
+<ConfirmEmailChangePanel UserId="@UserId" Email="@Email" Code="@Code"/>
+
+@code {
+    /// <summary>The <c>userId</c> query value the emailed change link carries.</summary>
+    [SupplyParameterFromQuery(Name = "userId")]
+    public string? UserId { get; set; }
+
+    /// <summary>The <c>email</c> query value the emailed change link carries — the new address.</summary>
+    [SupplyParameterFromQuery(Name = "email")]
+    public string? Email { get; set; }
+
+    /// <summary>The <c>code</c> query value the emailed change link carries.</summary>
+    [SupplyParameterFromQuery(Name = "code")]
+    public string? Code { get; set; }
+
+}

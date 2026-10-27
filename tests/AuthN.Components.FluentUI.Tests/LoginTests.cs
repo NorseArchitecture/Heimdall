@@ -11,6 +11,7 @@ namespace Norse.AuthN.Components.FluentUI.Tests;
 
 public sealed class LoginTests : BunitContext
 {
+	readonly IAuthenticationService _loginService = Substitute.For<IAuthenticationService>();
 	readonly ISessionTransition _sessionTransition = Substitute.For<ISessionTransition>();
 
 	public LoginTests()
@@ -121,5 +122,35 @@ public sealed class LoginTests : BunitContext
 		var inputs = component.FindAll("fluent-text-input");
 		inputs[0].Change("user@example.com");
 		inputs[1].Change("Password123");
+	}
+
+	[Fact]
+	async Task An_empty_submit_renders_the_email_required_message()
+	{
+		var component = RenderWithValidator();
+
+		await component.Find("form").SubmitAsync();
+
+		component.Markup.ShouldContain("Enter your email address.");
+		await _loginService.DidNotReceiveWithAnyArgs().Login(default!, Xunit.TestContext.Current.CancellationToken);
+	}
+
+	[Fact]
+	async Task A_malformed_email_renders_the_format_message()
+	{
+		var component = RenderWithValidator();
+
+		await component.FindAll("fluent-text-input")[0].ChangeAsync("not-an-email");
+		await component.Find("form").SubmitAsync();
+
+		component.Markup.ShouldContain("Enter a valid email address (local@domain.tld).");
+		await _loginService.DidNotReceiveWithAnyArgs().Login(default!, Xunit.TestContext.Current.CancellationToken);
+	}
+
+	IRenderedComponent<Login> RenderWithValidator()
+	{
+		Services.AddSingleton(_loginService);
+		Services.AddScoped<IValidator<LoginRequest>, LoginRequestValidator>();
+		return Render<Login>();
 	}
 }

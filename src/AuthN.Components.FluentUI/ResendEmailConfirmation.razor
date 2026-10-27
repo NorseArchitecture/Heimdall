@@ -1,0 +1,45 @@
+@page "/Account/ResendEmailConfirmation"
+@layout GateLayout
+@inherits OutcomeFormComponentBase
+@inject IAuthenticationService AuthenticationService
+
+<PageTitle>Resend email confirmation</PageTitle>
+
+<h1>Resend email confirmation</h1>
+
+@if (_sent)
+{
+    <p role="alert">Verification email sent. Please check your email.</p>
+}
+else
+{
+    <p class="gate-subtitle">Enter your email and we'll send the confirmation link again.</p>
+
+    <EditForm EditContext="EditContextFor(_request)" OnSubmit="HandleResendAsync" FormName="authn-resend-email-confirmation">
+        <FormValidator/>
+        <ModelValidationSummary/>
+        <FluentTextInput @bind-Value="_request.EmailInput" Label="Email" Required="true"
+            ValidationFieldFor="@((Expression<Func<Result<EmailAddress>>>)(() => _request.Email))"/>
+        <FluentButton Type="ButtonType.Submit" Appearance="ButtonAppearance.Primary" Disabled="IsSubmitting">Resend</FluentButton>
+    </EditForm>
+}
+
+<p class="gate-cross-link">Already confirmed? <a href="Account/Login">Log in</a></p>
+
+@code {
+    /// <summary>The form model — the email buffer whose assignment stamps the wire scalar.</summary>
+    readonly ResendEmailConfirmationRequest _request = new() { EmailInput = "" };
+
+    /// <summary>Whether the server has acknowledged the request; once set, the form gives way to the sent message.</summary>
+    bool _sent;
+
+    /// <summary>
+    ///     Dispatches the re-send request. The server acknowledges every address identically, so success
+    ///     renders the scaffold's sent message in place — no navigation, no session transition.
+    /// </summary>
+    /// <param name="editContext">The form's edit context, validated before dispatch.</param>
+    Task HandleResendAsync(EditContext editContext) =>
+        SubmitAsync(editContext, ct => AuthenticationService.ResendEmailConfirmation(_request, ct),
+            _ => _sent = true);
+
+}

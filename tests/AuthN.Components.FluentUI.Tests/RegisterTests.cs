@@ -12,6 +12,8 @@ namespace Norse.AuthN.Components.FluentUI.Tests;
 
 public sealed class RegisterTests : BunitContext
 {
+	readonly IAuthenticationService _registerService = Substitute.For<IAuthenticationService>();
+
 	public RegisterTests()
 	{
 		Services.AddFluentUIComponents();
@@ -151,5 +153,38 @@ public sealed class RegisterTests : BunitContext
 		var entry = navigation.History.ShouldHaveSingleItem();
 		entry.Options.ForceLoad.ShouldBeFalse();
 		navigation.Uri.ShouldBe(navigation.ToAbsoluteUri("/Account/Login").ToString());
+	}
+
+	[Fact]
+	async Task An_empty_submit_renders_the_email_required_message()
+	{
+		var component = RenderWithValidator();
+
+		await component.Find("form").SubmitAsync();
+
+		component.Markup.ShouldContain("Enter your email address.");
+		await _registerService.DidNotReceiveWithAnyArgs().Register(default!, Xunit.TestContext.Current.CancellationToken);
+	}
+
+	[Fact]
+	async Task A_malformed_email_renders_the_format_message()
+	{
+		var component = RenderWithValidator();
+
+		await component.FindAll("fluent-text-input")[0].ChangeAsync("not-an-email");
+		await component.Find("form").SubmitAsync();
+
+		component.Markup.ShouldContain("Enter a valid email address (local@domain.tld).");
+		await _registerService.DidNotReceiveWithAnyArgs().Register(default!, Xunit.TestContext.Current.CancellationToken);
+	}
+
+	IRenderedComponent<Register> RenderWithValidator()
+	{
+		_registerService.EmailExists(Arg.Any<EmailExistsRequest>(), Arg.Any<CancellationToken>())
+			.Returns(_ => Task.FromResult<Outcome<BoolResponse>>(new Success<BoolResponse>(new() { Value = false })));
+		Services.AddSingleton(_registerService);
+		Services.AddScoped<IValidator<RegisterRequest>>(_ =>
+			new RegisterRequestValidator(_registerService, NullLogger<RegisterRequestValidator>.Instance));
+		return Render<Register>();
 	}
 }
