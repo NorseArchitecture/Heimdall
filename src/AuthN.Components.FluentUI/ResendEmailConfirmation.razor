@@ -20,7 +20,7 @@ else
         <ModelValidationSummary/>
         <FluentTextInput @bind-Value="_request.EmailInput" Label="Email" Required="true"
             ValidationFieldFor="@((Expression<Func<Result<EmailAddress>>>)(() => _request.Email))"/>
-        <FluentButton Type="ButtonType.Submit" Appearance="ButtonAppearance.Primary" Disabled="IsSubmitting">Resend</FluentButton>
+        <FluentButton Type="ButtonType.Submit" Appearance="ButtonAppearance.Primary" Disabled="!CanSubmit">Resend</FluentButton>
     </EditForm>
 }
 

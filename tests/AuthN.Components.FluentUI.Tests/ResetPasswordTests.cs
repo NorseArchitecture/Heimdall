@@ -7,7 +7,7 @@ using Norse.AuthN.Services;
 
 namespace Norse.AuthN.Components.FluentUI.Tests;
 
-public sealed class ResetPasswordTests : BunitContext
+public sealed class ResetPasswordTests : InteractiveBunitContext
 {
 	public ResetPasswordTests()
 	{

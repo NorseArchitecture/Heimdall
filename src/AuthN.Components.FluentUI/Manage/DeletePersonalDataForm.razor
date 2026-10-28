@@ -13,7 +13,7 @@
     {
         <FluentTextInput @bind-Value="_request.Password" TextInputType="TextInputType.Password" AutoComplete="current-password" Label="Password" Required="true"/>
     }
-    <FluentButton Type="ButtonType.Submit" Appearance="ButtonAppearance.Primary" Disabled="IsSubmitting">Delete data and close my account</FluentButton>
+    <FluentButton Type="ButtonType.Submit" Appearance="ButtonAppearance.Primary" Disabled="!CanSubmit">Delete data and close my account</FluentButton>
 </EditForm>
 
 @code {

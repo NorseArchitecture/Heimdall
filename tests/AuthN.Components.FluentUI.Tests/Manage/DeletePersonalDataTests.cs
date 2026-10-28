@@ -8,7 +8,7 @@ using Norse.AuthN.Services;
 
 namespace Norse.AuthN.Components.FluentUI.Tests.Manage;
 
-public sealed class DeletePersonalDataTests : BunitContext
+public sealed class DeletePersonalDataTests : InteractiveBunitContext
 {
 	readonly IAccountService _account = Substitute.For<IAccountService>();
 

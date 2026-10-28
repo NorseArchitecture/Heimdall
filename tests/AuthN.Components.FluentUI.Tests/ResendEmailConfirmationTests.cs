@@ -8,7 +8,7 @@ using Norse.AuthN.Services;
 
 namespace Norse.AuthN.Components.FluentUI.Tests;
 
-public sealed class ResendEmailConfirmationTests : BunitContext
+public sealed class ResendEmailConfirmationTests : InteractiveBunitContext
 {
 	readonly IAuthenticationService _service = Substitute.For<IAuthenticationService>();
 

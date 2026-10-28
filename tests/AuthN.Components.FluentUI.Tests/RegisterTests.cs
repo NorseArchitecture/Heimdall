@@ -10,7 +10,7 @@ using Norse.Primitives;
 
 namespace Norse.AuthN.Components.FluentUI.Tests;
 
-public sealed class RegisterTests : BunitContext
+public sealed class RegisterTests : InteractiveBunitContext
 {
 	readonly IAuthenticationService _registerService = Substitute.For<IAuthenticationService>();
 

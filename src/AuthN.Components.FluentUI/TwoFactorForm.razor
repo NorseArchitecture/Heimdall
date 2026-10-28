@@ -19,7 +19,7 @@ else
         <ModelValidationSummary/>
         <FluentTextInput @bind-Value="_request.Code" AutoComplete="one-time-code" Label="Authenticator code" Required="true"/>
         <FluentCheckbox @bind-Value="_request.RememberMachine" Label="Remember this machine"/>
-        <FluentButton Type="ButtonType.Submit" Appearance="ButtonAppearance.Primary" Disabled="IsSubmitting">Log in</FluentButton>
+        <FluentButton Type="ButtonType.Submit" Appearance="ButtonAppearance.Primary" Disabled="!CanSubmit">Log in</FluentButton>
     </EditForm>
 
     <p class="gate-cross-link">Don't have access to your authenticator device? You can

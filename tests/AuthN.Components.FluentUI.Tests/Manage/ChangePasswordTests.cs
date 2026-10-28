@@ -9,7 +9,7 @@ using Norse.AuthN.Services;
 
 namespace Norse.AuthN.Components.FluentUI.Tests.Manage;
 
-public sealed class ChangePasswordTests : BunitContext
+public sealed class ChangePasswordTests : InteractiveBunitContext
 {
 	readonly IAccountService _account = Substitute.For<IAccountService>();
 

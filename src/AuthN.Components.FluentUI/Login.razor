@@ -20,7 +20,7 @@
         </LabelTemplate>
     </FluentTextInput>
     <FluentCheckbox @bind-Value="_request.RememberMe" Label="Remember me"/>
-    <FluentButton Type="ButtonType.Submit" Appearance="ButtonAppearance.Primary" Disabled="IsSubmitting">Log in</FluentButton>
+    <FluentButton Type="ButtonType.Submit" Appearance="ButtonAppearance.Primary" Disabled="!CanSubmit">Log in</FluentButton>
 </EditForm>
 
 <p class="gate-cross-link">New here? <a href="Account/Register">Create an account</a></p>

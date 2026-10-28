@@ -18,7 +18,7 @@ else
         <FormValidator/>
         <ModelValidationSummary/>
         <FluentTextInput @bind-Value="_request.RecoveryCode" AutoComplete="off" Label="Recovery code" Required="true"/>
-        <FluentButton Type="ButtonType.Submit" Appearance="ButtonAppearance.Primary" Disabled="IsSubmitting">Log in</FluentButton>
+        <FluentButton Type="ButtonType.Submit" Appearance="ButtonAppearance.Primary" Disabled="!CanSubmit">Log in</FluentButton>
     </EditForm>
 
     <p class="gate-cross-link">Have your authenticator device after all?
