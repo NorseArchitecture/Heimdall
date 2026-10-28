@@ -1,0 +1,35 @@
+@using System.Security.Claims
+@using Norse.Abstractions.Components.Authorization
+@inject NavigationManager NavigationManager
+
+@if (!IsIdentity)
+{
+    <RedirectToLogin/>
+}
+
+@code {
+
+    /// <summary>The principal the router's <c>NotAuthorized</c> template was handed.</summary>
+    [Parameter, EditorRequired]
+    public ClaimsPrincipal User { get; set; } = null!;
+
+    // The anonymous principal is authenticated too (Midgard's NorseAnonymousHandler mints it), so
+    // IsAuthenticated alone is not an account: it is excluded by role, the same way IdentityPolicies
+    // excludes it. Only a principal with an account can be denied; everyone else is sent to sign in.
+    bool IsIdentity =>
+        User.Identity?.IsAuthenticated == true && !User.IsInRole(NorseRoles.Anonymous);
+
+    /// <inheritdoc />
+    // Soft and replacing, as RedirectToLogin is: no principal changes here, and the forbidden route's
+    // entry would only render this same redirect again, so leaving it in the stack turns Back into a
+    // bounce. The return URL is the forbidden route's own PathBase-qualified path and query, local by
+    // construction, carried as ReturnUrl exactly as the HTTP lane's cookie redirect carries it.
+    protected override void OnParametersSet()
+    {
+        if (IsIdentity)
+            NavigationManager.NavigateTo(
+                $"Account/AccessDenied?ReturnUrl={Uri.EscapeDataString(new Uri(NavigationManager.Uri).PathAndQuery)}",
+                replace: true);
+    }
+
+}

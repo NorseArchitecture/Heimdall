@@ -1,0 +1,43 @@
+@page "/Account/Manage/RenamePasskey/{Id}"
+@inherits OutcomeComponentBase
+@inject IPasskeyService PasskeyService
+
+<PageTitle>Rename passkey</PageTitle>
+
+<h3>Rename passkey</h3>
+
+@if (IsDispatching)
+{
+    <Loader/>
+}
+else if (Problem is not null)
+{
+    <div class="alert alert-danger" role="alert">
+        @foreach (var message in ProblemMessages.Of(Problem, "The passkey could not be loaded."))
+        {
+            <p>@message</p>
+        }
+    </div>
+}
+else if (_passkey is not null)
+{
+    <RenamePasskeyForm CredentialId="@_passkey.CredentialId" CurrentName="@_passkey.Name"/>
+}
+
+@code {
+    /// <summary>The passkey being renamed, loaded once on initialization. Null until the load succeeds.</summary>
+    PasskeyEntry? _passkey;
+
+    /// <summary>The base64url credential id from the server-authored rename URL (<c>PasskeyEntry.RenameUrl</c>).</summary>
+    [Parameter]
+    public string Id { get; set; } = "";
+
+    /// <summary>
+    ///     Loads the passkey, so the form opens on its current name. A failure (an unknown or removed
+    ///     passkey answers <c>NotFound</c>) renders in place through the base's <c>Problem</c>, and no form
+    ///     is offered; success hands the id and name to <see cref="RenamePasskeyForm" />.
+    /// </summary>
+    protected override Task OnInitializedAsync() =>
+        DispatchAsync(ct => PasskeyService.GetPasskey(new() { CredentialId = Id }, ct), passkey => _passkey = passkey);
+
+}

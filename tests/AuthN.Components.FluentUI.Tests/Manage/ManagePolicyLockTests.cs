@@ -15,7 +15,26 @@ public sealed class ManagePolicyLockTests
 		var pages = typeof(ManageLayout).Assembly.GetTypes()
 			.Where(t => t.GetCustomAttributes<RouteAttribute>().Any(r => r.Template.StartsWith("/Account/Manage", StringComparison.OrdinalIgnoreCase)))
 			.ToList();
-		pages.Count.ShouldBeGreaterThanOrEqualTo(7);
+		pages.Count.ShouldBeGreaterThanOrEqualTo(15);
+		string[] expected =
+		[
+			"Index",
+			"Email",
+			"ChangePassword",
+			"SetPassword",
+			"ExternalLogins",
+			"PersonalData",
+			"DeletePersonalData",
+			"TwoFactorAuthentication",
+			"EnableAuthenticator",
+			"RecoveryCodesHandoff",
+			"ResetAuthenticator",
+			"Disable2fa",
+			"GenerateRecoveryCodes",
+			"Passkeys",
+			"RenamePasskey",
+		];
+		expected.ShouldBeSubsetOf(pages.Select(t => t.Name));
 		foreach (var page in pages)
 		{
 			page.GetCustomAttributes<AuthorizeAttribute>().ShouldContain(a => a.Policy == AuthNPolicies.Account, page.FullName);

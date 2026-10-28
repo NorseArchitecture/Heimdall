@@ -14,7 +14,7 @@
 </FluentTextInput>
 @if (!EmailConfirmed)
 {
-    <FluentButton Type="ButtonType.Button" Disabled="_sending" OnClick="HandleSendVerificationAsync">Send verification email</FluentButton>
+    <FluentButton Type="ButtonType.Button" Disabled="_sending || !RendererInfo.IsInteractive" OnClick="HandleSendVerificationAsync">Send verification email</FluentButton>
 }
 
 <EditForm EditContext="EditContextFor(_request)" OnSubmit="HandleChangeEmailAsync" FormName="authn-change-email">

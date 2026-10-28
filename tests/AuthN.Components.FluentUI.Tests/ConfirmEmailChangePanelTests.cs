@@ -1,5 +1,6 @@
 using Bunit;
 using Bunit.TestDoubles;
+using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.FluentUI.AspNetCore.Components;
 using Norse.Abstractions.Contracts;
@@ -20,6 +21,8 @@ public sealed class ConfirmEmailChangePanelTests : BunitContext
 		JSInterop.Mode = JSRuntimeMode.Loose;
 		Services.AddSingleton(_service);
 		Services.AddSingleton(_sessionTransition);
+		// Last: setting the renderer locks the service provider.
+		SetRendererInfo(new RendererInfo("Server", isInteractive: true));
 	}
 
 	BunitNavigationManager Navigation => Services.GetRequiredService<BunitNavigationManager>();

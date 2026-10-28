@@ -23,10 +23,24 @@
     <FluentButton Type="ButtonType.Submit" Appearance="ButtonAppearance.Primary" Disabled="!CanSubmit">Log in</FluentButton>
 </EditForm>
 
+<SignInMethodLinks ReturnUrl="@ReturnUrl" ShowPasskey="true"/>
+
 <p class="gate-cross-link">New here? <a href="Account/Register">Create an account</a></p>
 
 @code {
     readonly LoginRequest _request = new() { EmailInput = "" };
+
+    /// <summary>
+    ///     The return URL the gate was reached with. Blazor matches the query name case-insensitively, so the
+    ///     scaffold's <c>ReturnUrl</c> casing arrives here too. Carried to the server, which validates it and
+    ///     authors the <c>NextUrl</c>; never navigated to from here.
+    /// </summary>
+    [SupplyParameterFromQuery(Name = "returnUrl")]
+    public string? ReturnUrl { get; set; }
+
+    /// <inheritdoc />
+    protected override void OnParametersSet() =>
+        _request.ReturnUrl = ReturnUrl ?? string.Empty;
 
     // Authored here, once -- never sourced from the wire. Unauthorized and InvalidCredentials are both
     // silent by design (Midgard's trailerless decode contract): the server sends zero Errors for either,

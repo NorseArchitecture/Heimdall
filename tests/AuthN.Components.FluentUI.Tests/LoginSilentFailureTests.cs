@@ -50,6 +50,7 @@ public sealed class LoginSilentFailureTests
 		context.Services.AddFluentUIComponents();
 		context.JSInterop.Mode = JSRuntimeMode.Loose;
 		context.Services.AddSingleton(Substitute.For<ISessionTransition>());
+		context.Services.AddSingleton(SignInMethods());
 
 		var service = Substitute.For<IAuthenticationService>();
 		service.Login(Arg.Any<LoginRequest>(), Arg.Any<CancellationToken>())
@@ -65,5 +66,14 @@ public sealed class LoginSilentFailureTests
 		component.Find("form").Submit();
 
 		return component.Find(".norse-model-errors").TextContent.Trim();
+	}
+
+	// Login renders SignInMethodLinks, which loads the sign-in methods on render.
+	static ISignInMethodsService SignInMethods()
+	{
+		var service = Substitute.For<ISignInMethodsService>();
+		service.GetSignInMethods(Arg.Any<GetSignInMethodsRequest>(), Arg.Any<CancellationToken>())
+			.Returns(Outcome<SignInMethodsResponse>.Ok(new()));
+		return service;
 	}
 }

@@ -1,4 +1,6 @@
+using System.Reflection;
 using Bunit;
+using Microsoft.AspNetCore.Components;
 using Microsoft.FluentUI.AspNetCore.Components;
 
 namespace Norse.AuthN.Components.FluentUI.Tests.Manage;
@@ -27,5 +29,21 @@ public sealed class ManageNavMenuTests : BunitContext
 			"Account/Manage/Passkeys",
 			"Account/Manage/PersonalData"
 		]);
+	}
+
+	// Guard (T3-5): the nav stays static, so nothing routes its links but the page tree. A link whose page
+	// moved or was renamed would 404 silently; this fails loud instead.
+	[Fact]
+	void Every_nav_link_resolves_to_a_routable_heimdall_page()
+	{
+		var routes = typeof(ManageLayout).Assembly.GetTypes()
+			.SelectMany(t => t.GetCustomAttributes<RouteAttribute>())
+			.Select(r => r.Template.TrimStart('/'))
+			.ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+		var component = Render<ManageNavMenu>();
+
+		foreach (var href in component.FindAll("[href]").Select(a => a.GetAttribute("href")))
+			routes.ShouldContain(href!, href);
 	}
 }

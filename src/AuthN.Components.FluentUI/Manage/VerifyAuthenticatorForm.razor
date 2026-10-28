@@ -1,0 +1,25 @@
+@inherits OutcomeFormComponentBase
+@inject ITwoFactorService TwoFactorService
+@inject ISessionTransition SessionTransition
+
+<EditForm EditContext="EditContextFor(_request)" OnSubmit="HandleVerifyAsync" FormName="authn-enable-authenticator">
+    <FormValidator/>
+    <ModelValidationSummary/>
+    <FluentTextInput @bind-Value="_request.Code" AutoComplete="one-time-code" Label="Verification code" Required="true"/>
+    <FluentButton Type="ButtonType.Submit" Appearance="ButtonAppearance.Primary" Disabled="!CanSubmit">Verify</FluentButton>
+</EditForm>
+
+@code {
+    /// <summary>The form model — the authenticator code, raw as typed.</summary>
+    readonly EnableAuthenticatorRequest _request = new();
+
+    /// <summary>
+    ///     Dispatches the verification. Enabling two-factor rotates the security stamp, so success begins the
+    ///     session transition onto the server's <c>NextUrl</c> — the recovery-code handoff or the verified
+    ///     status. An invalid code lands on the code field through the base.
+    /// </summary>
+    /// <param name="editContext">The form's edit context, validated before dispatch.</param>
+    Task HandleVerifyAsync(EditContext editContext) =>
+        SubmitAsync(editContext, ct => TwoFactorService.EnableAuthenticator(_request, ct), result => SessionTransition.Begin(result));
+
+}

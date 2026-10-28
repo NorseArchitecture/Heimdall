@@ -2,6 +2,7 @@ using Bunit;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.FluentUI.AspNetCore.Components;
 using Norse.Abstractions.Components;
+using Norse.Abstractions.Contracts;
 using Norse.AuthN.Components.FluentUI.Manage;
 using Norse.AuthN.Services;
 
@@ -22,7 +23,19 @@ public sealed class FormStaticRenderLockTests : BunitContext
 		Services
 			.AddSingleton(_account)
 			.AddSingleton(Substitute.For<IAuthenticationService>())
-			.AddSingleton(Substitute.For<ISessionTransition>());
+			.AddSingleton(Substitute.For<ITwoFactorService>())
+			.AddSingleton(Substitute.For<IPasskeyService>())
+			.AddSingleton(Substitute.For<ISessionTransition>())
+			.AddSingleton(SignInMethods());
+	}
+
+	// Login renders SignInMethodLinks, which loads on render, static or not.
+	static ISignInMethodsService SignInMethods()
+	{
+		var service = Substitute.For<ISignInMethodsService>();
+		service.GetSignInMethods(Arg.Any<GetSignInMethodsRequest>(), Arg.Any<CancellationToken>())
+			.Returns(Outcome<SignInMethodsResponse>.Ok(new()));
+		return service;
 	}
 
 	public static TheoryData<Type> Forms =>
@@ -39,6 +52,8 @@ public sealed class FormStaticRenderLockTests : BunitContext
 		typeof(ChangePasswordForm),
 		typeof(SetPasswordForm),
 		typeof(DeletePersonalDataForm),
+		typeof(VerifyAuthenticatorForm),
+		typeof(RenamePasskeyForm),
 	];
 
 	// The theory is only as good as its list: a new form that never joins it is never locked.

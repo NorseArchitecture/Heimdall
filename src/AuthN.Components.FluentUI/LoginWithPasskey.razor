@@ -1,0 +1,182 @@
+@page "/Account/LoginWithPasskey"
+@layout GateLayout
+@using Microsoft.JSInterop
+@inherits OutcomeComponentBase
+@implements IAsyncDisposable
+@inject ISignInMethodsService SignInMethodsService
+@inject ISessionTransition SessionTransition
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Log in with a passkey</PageTitle>
+
+<h1>Log in with a passkey</h1>
+<p class="gate-subtitle">Welcome back to the bridge.</p>
+
+@if ((Problem ?? _browserProblem) is { } problem)
+{
+    <div class="alert alert-danger" role="alert">
+        @foreach (var message in ProblemMessages.Of(problem, FallbackMessage))
+        {
+            <p>@message</p>
+        }
+    </div>
+}
+
+@if (_supported is false)
+{
+    <p class="text-danger">Some passkey features are missing. Please update your browser.</p>
+}
+else
+{
+    <FluentCheckbox @bind-Value="_rememberMe" Label="Remember me"/>
+    @* Disabled, not hidden, until support is known: a static render never learns it, and offers nothing to click. *@
+    <FluentButton Appearance="ButtonAppearance.Primary" Disabled="@(!CanAct || _busy || _supported is not true)" data-action="passkey"
+                  OnClick="SignInAsync">Use a passkey</FluentButton>
+}
+
+<SignInMethodLinks ReturnUrl="@ReturnUrl" ShowPassword="true"/>
+
+@code {
+    /// <summary>
+    ///     Authored here, once, never sourced from the wire: the server collapses a forged, replayed, or
+    ///     unverified assertion onto <c>InvalidCredentials</c>, and the page renders the one line for all three.
+    /// </summary>
+    const string InvalidPasskeyMessage = "The passkey could not be used to sign in.";
+
+    /// <summary>
+    ///     The return URL the gate was reached with. Blazor matches the query name case-insensitively, so the
+    ///     scaffold's <c>ReturnUrl</c> casing arrives here too. Carried to the server, which validates it and
+    ///     authors the <c>NextUrl</c>; never navigated to from here.
+    /// </summary>
+    [SupplyParameterFromQuery(Name = "returnUrl")]
+    public string? ReturnUrl { get; set; }
+
+    bool _rememberMe;
+
+    /// <summary>The browser half of the ceremony, created after the first interactive render. Null under a static render.</summary>
+    PasskeyModule? _module;
+
+    /// <summary>Whether the browser can run a ceremony; null until the module answers, which a static render never asks.</summary>
+    bool? _supported;
+
+    /// <summary>
+    ///     True while the browser ceremony runs. Sign-in spans two dispatches with the ceremony between them, and
+    ///     the base's in-flight guard (<c>CanAct</c>) is released in that gap; this covers exactly the gap.
+    /// </summary>
+    bool _busy;
+
+    /// <summary>
+    ///     The browser's own failure, rendered in place: the module's import failure (the button stays disabled,
+    ///     since support was never learned) or the ceremony's error line (a dismissed prompt, an interop failure).
+    /// </summary>
+    Problem? _browserProblem;
+
+    /// <summary>The page-authored line for a failure the server sends without messages.</summary>
+    const string FallbackMessage = "Passkey sign-in failed. Please try again.";
+
+    /// <summary>
+    ///     Imports the module and asks for browser support after the first interactive render only: a static
+    ///     render makes no JS call, so the button stays disabled there. Disposal mid-probe ends quietly; a failed
+    ///     import renders in place instead of tearing down the page.
+    /// </summary>
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender || !RendererInfo.IsInteractive)
+            return;
+
+        _module = new(JSRuntime);
+        var cancellationToken = CancellationToken;
+        try
+        {
+            _supported = await _module.IsSupportedAsync(cancellationToken);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            return;
+        }
+        catch (JSException exception)
+        {
+            _browserProblem = Problem.ModelError(ErrorCategory.Fault, exception.Message);
+        }
+
+        StateHasChanged();
+    }
+
+    /// <summary>
+    ///     Click-to-sign-in, never on render: the server's request options, the browser's assertion ceremony
+    ///     (<c>mediation: "optional"</c>), then <c>PasskeySignIn</c>; success begins the session transition onto
+    ///     the server's <c>NextUrl</c>. A dismissed prompt or an interop failure renders the ceremony's line in
+    ///     place and calls nothing; an abort renders nothing and calls nothing; a server refusal renders in place.
+    ///     A page disposed during the ceremony writes nothing and calls nothing.
+    /// </summary>
+    async Task SignInAsync()
+    {
+        if (!CanAct || _busy || _module is null)
+            return;
+
+        _browserProblem = null;
+        PasskeyRequestOptionsResponse? options = null;
+        await DispatchAsync(ct => SignInMethodsService.GetPasskeyRequestOptions(ct), response => options = response);
+        if (options is null)
+            return;
+
+        var cancellationToken = CancellationToken;
+        PasskeyCeremonyResult ceremony;
+        _busy = true;
+        // An event handler renders only at its first yield and on completion, and the options dispatch has
+        // already released CanAct; render now so the page shows the ceremony as in flight.
+        StateHasChanged();
+        try
+        {
+            ceremony = await _module.RequestAsync(options.OptionsJson, "optional", cancellationToken);
+        }
+        finally
+        {
+            _busy = false;
+        }
+
+        if (cancellationToken.IsCancellationRequested)
+            return;
+
+        if (ceremony.Error is not null)
+        {
+            _browserProblem = Problem.ModelError(ErrorCategory.Fault, ceremony.Error);
+            return;
+        }
+
+        if (ceremony.CredentialJson is not { } credentialJson)
+            return;
+
+        PasskeySignInRequest request = new()
+        {
+            CredentialJson = credentialJson,
+            AssertionState = options.AssertionState,
+            RememberMe = _rememberMe,
+            ReturnUrl = ReturnUrl ?? string.Empty,
+        };
+        await DispatchAsync(ct => PasskeySignInAsync(request, ct), result => SessionTransition.Begin(result));
+    }
+
+    /// <summary>Recasts <c>InvalidCredentials</c> onto the page's own line, whatever the server sent with it.</summary>
+    async Task<Outcome<NavigationResult>> PasskeySignInAsync(PasskeySignInRequest request, CancellationToken cancellationToken)
+    {
+        var outcome = await SignInMethodsService.PasskeySignIn(request, cancellationToken);
+        if (outcome is Failed({ Category: ErrorCategory.InvalidCredentials }))
+            return new Failed(Problem.ModelError(ErrorCategory.InvalidCredentials, InvalidPasskeyMessage));
+
+        return outcome;
+    }
+
+    /// <summary>
+    ///     Disposes the base, then the module: implementing <see cref="IAsyncDisposable" /> means the framework
+    ///     calls only this overload, so the base's <c>Dispose()</c> (which cancels the page's token) would
+    ///     otherwise never run. Same discipline as <c>Passkeys</c>.
+    /// </summary>
+    public async ValueTask DisposeAsync()
+    {
+        Dispose();
+        if (_module is not null)
+            await _module.DisposeAsync();
+    }
+
+}

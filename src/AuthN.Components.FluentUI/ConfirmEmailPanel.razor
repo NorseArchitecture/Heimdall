@@ -27,7 +27,7 @@ else
         </div>
     }
 
-    <FluentButton Appearance="ButtonAppearance.Primary" Disabled="IsDispatching" OnClick="HandleConfirmAsync">Confirm</FluentButton>
+    <FluentButton Appearance="ButtonAppearance.Primary" Disabled="!CanAct" OnClick="HandleConfirmAsync">Confirm</FluentButton>
 }
 
 @code {

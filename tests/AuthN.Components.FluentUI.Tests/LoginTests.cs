@@ -1,6 +1,7 @@
 using Bunit;
 using Bunit.TestDoubles;
 using FluentValidation;
+using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.FluentUI.AspNetCore.Components;
 using Norse.Abstractions.Contracts;
@@ -13,6 +14,7 @@ public sealed class LoginTests : InteractiveBunitContext
 {
 	readonly IAuthenticationService _loginService = Substitute.For<IAuthenticationService>();
 	readonly ISessionTransition _sessionTransition = Substitute.For<ISessionTransition>();
+	readonly ISignInMethodsService _signInMethods = Substitute.For<ISignInMethodsService>();
 
 	public LoginTests()
 	{
@@ -22,6 +24,63 @@ public sealed class LoginTests : InteractiveBunitContext
 		// documented answer, rather than hand-enumerating every internal call FluentUI might make.
 		JSInterop.Mode = JSRuntimeMode.Loose;
 		Services.AddSingleton(_sessionTransition);
+		_signInMethods.GetSignInMethods(Arg.Any<GetSignInMethodsRequest>(), Arg.Any<CancellationToken>())
+			.Returns(Outcome<SignInMethodsResponse>.Ok(new()));
+		Services.AddSingleton(_signInMethods);
+	}
+
+	// Blazor matches query parameter names case-insensitively; both casings occur in the wild (the
+	// scaffold's own redirects write ReturnUrl), so both must reach the request the server validates.
+	[Theory]
+	[InlineData("returnUrl")]
+	[InlineData("ReturnUrl")]
+	async Task Both_query_casings_reach_the_request(string name)
+	{
+		var service = SuccessfulLogin();
+		Services.GetRequiredService<NavigationManager>().NavigateTo($"Account/Login?{name}=%2FAccount%2FManage");
+
+		var component = Render<Login>();
+		FillCredentials(component);
+		await component.Find("form").SubmitAsync();
+
+		await service.Received(1).Login(Arg.Is<LoginRequest>(r => r.ReturnUrl == "/Account/Manage"), Arg.Any<CancellationToken>());
+	}
+
+	[Fact]
+	async Task No_return_url_sends_an_empty_string()
+	{
+		var service = SuccessfulLogin();
+
+		var component = Render<Login>();
+		FillCredentials(component);
+		await component.Find("form").SubmitAsync();
+
+		await service.Received(1).Login(Arg.Is<LoginRequest>(r => r.ReturnUrl == string.Empty), Arg.Any<CancellationToken>());
+	}
+
+	// Login is the password page, so it offers the passkey link and never a link back to itself.
+	[Fact]
+	void Login_hands_its_return_url_to_the_sign_in_links()
+	{
+		SuccessfulLogin();
+		Services.GetRequiredService<NavigationManager>().NavigateTo("Account/Login?returnUrl=%2FAccount%2FManage");
+
+		var component = Render<Login>();
+
+		var links = component.FindComponent<SignInMethodLinks>().Instance;
+		links.ReturnUrl.ShouldBe("/Account/Manage");
+		links.ShowPasskey.ShouldBeTrue();
+		links.ShowPassword.ShouldBeFalse();
+		_signInMethods.Received(1).GetSignInMethods(Arg.Is<GetSignInMethodsRequest>(r => r.ReturnUrl == "/Account/Manage"), Arg.Any<CancellationToken>());
+	}
+
+	IAuthenticationService SuccessfulLogin()
+	{
+		var service = Substitute.For<IAuthenticationService>();
+		service.Login(Arg.Any<LoginRequest>(), Arg.Any<CancellationToken>())
+			.Returns(Outcome<NavigationResult>.Ok(new() { NextUrl = "/" }));
+		Services.AddSingleton(service);
+		return service;
 	}
 
 	[Fact]

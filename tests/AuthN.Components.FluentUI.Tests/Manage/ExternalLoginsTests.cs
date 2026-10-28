@@ -1,5 +1,6 @@
 using Bunit;
 using Bunit.TestDoubles;
+using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.FluentUI.AspNetCore.Components;
 using Norse.Abstractions.Contracts;
@@ -22,6 +23,8 @@ public sealed class ExternalLoginsTests : BunitContext
 		Services
 			.AddSingleton(_account)
 			.AddSingleton(_sessionTransition);
+		// Last: setting the renderer locks the service provider.
+		SetRendererInfo(new RendererInfo("Server", isInteractive: true));
 	}
 
 	BunitNavigationManager Navigation => Services.GetRequiredService<BunitNavigationManager>();

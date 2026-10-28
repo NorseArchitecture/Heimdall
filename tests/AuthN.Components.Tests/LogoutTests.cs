@@ -1,4 +1,5 @@
 using Bunit;
+using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
 using Norse.Abstractions.Contracts;
 using Norse.AuthN.Services;
@@ -14,6 +15,8 @@ public sealed class LogoutTests : BunitContext
 	{
 		Services.AddSingleton(_service);
 		Services.AddSingleton(_sessionTransition);
+		// Last: setting the renderer locks the service provider.
+		SetRendererInfo(new RendererInfo("Server", isInteractive: true));
 	}
 
 	[Fact]
