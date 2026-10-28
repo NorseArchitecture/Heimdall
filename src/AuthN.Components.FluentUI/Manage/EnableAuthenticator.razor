@@ -1,0 +1,58 @@
+@page "/Account/Manage/EnableAuthenticator"
+@using System.Text
+@inherits OutcomeComponentBase
+@inject ITwoFactorService TwoFactorService
+
+<PageTitle>Configure authenticator app</PageTitle>
+
+<h3>Configure authenticator app</h3>
+
+@if (IsDispatching)
+{
+    <Loader/>
+}
+else if (Problem is not null)
+{
+    <div class="alert alert-danger" role="alert">Your authenticator setup could not be loaded.</div>
+}
+else if (_setup is not null)
+{
+    <p>To use an authenticator app go through the following steps:</p>
+    <ol class="list">
+        <li>
+            <p>Download a two-factor authenticator app like Microsoft Authenticator or Google Authenticator.</p>
+        </li>
+        <li>
+            <p>Scan the QR Code or enter this key <kbd>@_setup.SharedKey</kbd> into your two factor authenticator app. Spaces and casing do not matter.</p>
+            <img alt="QR code for your authenticator app" src="@QrCodeSource(_setup.QrCodeSvg)"/>
+        </li>
+        <li>
+            <p>
+                Once you have scanned the QR code or input the key above, your two factor authentication app will provide you
+                with a unique code. Enter the code in the confirmation box below.
+            </p>
+            <VerifyAuthenticatorForm/>
+        </li>
+    </ol>
+}
+
+@code {
+    /// <summary>The caller's authenticator setup, loaded once on initialization. Null until the load succeeds.</summary>
+    AuthenticatorSetupResponse? _setup;
+
+    /// <summary>
+    ///     Loads the authenticator setup; the server provisions a missing key without rotating the stamp.
+    ///     A failure renders in place through the base's <c>Problem</c>, and no form is offered; success
+    ///     renders the key, the QR code, and <see cref="VerifyAuthenticatorForm" />.
+    /// </summary>
+    protected override Task OnInitializedAsync() =>
+        DispatchAsync(ct => TwoFactorService.GetAuthenticatorSetup(ct), setup => _setup = setup);
+
+    /// <summary>
+    ///     The server-rendered SVG as a base64 data URI for an <c>&lt;img&gt;</c>, never as markup — an image
+    ///     cannot run script.
+    /// </summary>
+    static string QrCodeSource(string svg) =>
+        $"data:image/svg+xml;base64,{Convert.ToBase64String(Encoding.UTF8.GetBytes(svg))}";
+
+}

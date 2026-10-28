@@ -54,6 +54,8 @@ public sealed class ManageLayoutTests : BunitContext
 	void A_manage_page_renders_through_the_router_layout_chain_exactly_once()
 	{
 		Services.AddSingleton(Substitute.For<IIdentityService>());
+		// PersonalData reads RendererInfo; setting it locks the service provider, so it follows the registration.
+		SetRendererInfo(new("Server", true));
 		RouteData routeData = new(typeof(PersonalData), new Dictionary<string, object?>());
 		var cut = Render<RouteView>(p => p.Add(r => r.RouteData, routeData));
 		cut.FindAll("[data-test-shell]").Count.ShouldBe(1);

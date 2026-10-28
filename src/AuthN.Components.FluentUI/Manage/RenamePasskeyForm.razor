@@ -1,0 +1,40 @@
+@inherits OutcomeFormComponentBase
+@inject IPasskeyService PasskeyService
+@inject NavigationManager Navigation
+
+<EditForm EditContext="EditContextFor(_request)" OnSubmit="HandleRenameAsync" FormName="authn-rename-passkey">
+    <FormValidator/>
+    <ModelValidationSummary/>
+    <FluentTextInput @bind-Value="_request.Name" Label="Passkey name" Required="true"/>
+    <FluentButton Type="ButtonType.Submit" Appearance="ButtonAppearance.Primary" Disabled="!CanSubmit">Save</FluentButton>
+</EditForm>
+
+@code {
+    /// <summary>The form model — the credential id (fixed) and the new name, raw as typed.</summary>
+    readonly RenamePasskeyRequest _request = new();
+
+    /// <summary>The base64url credential id of the passkey being renamed, echoed from <c>GetPasskey</c>.</summary>
+    [Parameter, EditorRequired]
+    public string CredentialId { get; set; } = "";
+
+    /// <summary>The passkey's current display name; <c>""</c> when unnamed.</summary>
+    [Parameter, EditorRequired]
+    public string CurrentName { get; set; } = "";
+
+    /// <summary>Copies the id and the <see cref="CurrentName" /> into the form model, so the form opens on the stored name.</summary>
+    protected override void OnParametersSet()
+    {
+        _request.CredentialId = CredentialId;
+        _request.Name = CurrentName;
+    }
+
+    /// <summary>
+    ///     Dispatches the rename. Renaming touches no sign-in, so success soft-navigates to the server's
+    ///     <c>NextUrl</c> — the passkey list with its updated status. A passkey removed meanwhile answers
+    ///     <c>NotFound</c>, which renders in the summary through the base.
+    /// </summary>
+    /// <param name="editContext">The form's edit context, validated before dispatch.</param>
+    Task HandleRenameAsync(EditContext editContext) =>
+        SubmitAsync(editContext, ct => PasskeyService.RenamePasskey(_request, ct), result => Navigation.NavigateTo(result.NextUrl));
+
+}

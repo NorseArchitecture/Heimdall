@@ -22,7 +22,22 @@ public sealed class RequestContractTests
 		typeof(ResendEmailConfirmationRequest), typeof(AccountStatusResponse), typeof(SetPhoneNumberRequest),
 		typeof(ChangePasswordRequest), typeof(SetPasswordRequest), typeof(ChangeEmailRequest),
 		typeof(ExternalLoginsResponse), typeof(ExternalLoginEntry), typeof(ExternalProviderEntry),
-		typeof(RemoveExternalLoginRequest), typeof(DeletePersonalDataRequest)
+		typeof(RemoveExternalLoginRequest), typeof(DeletePersonalDataRequest), .. Train3Records
+	];
+
+	static Type[] Train3Records =>
+	[
+		typeof(AuthenticatorSetupResponse), typeof(EnableAuthenticatorRequest), typeof(RevealRecoveryCodesRequest),
+		typeof(RecoveryCodesResponse), typeof(PasskeysResponse), typeof(PasskeyEntry), typeof(GetPasskeyRequest),
+		typeof(PasskeyCreationOptionsResponse), typeof(AddPasskeyRequest), typeof(RenamePasskeyRequest),
+		typeof(RemovePasskeyRequest), typeof(PasskeyRequestOptionsResponse), typeof(PasskeySignInRequest),
+		typeof(GetSignInMethodsRequest), typeof(SignInMethodsResponse), typeof(ExternalProviderLink)
+	];
+
+	static Type[] Contracts =>
+	[
+		typeof(IAuthenticationService), typeof(IIdentityService), typeof(IAccountService),
+		typeof(ITwoFactorService), typeof(IPasskeyService), typeof(ISignInMethodsService)
 	];
 
 	static MethodInfo Operation(Type contract, Type request) =>
@@ -56,7 +71,8 @@ public sealed class RequestContractTests
 				typeof(ConfirmEmailChangeRequest), typeof(ResendEmailConfirmationRequest), typeof(AccountStatusResponse),
 				typeof(SetPhoneNumberRequest), typeof(ChangePasswordRequest), typeof(SetPasswordRequest),
 				typeof(ChangeEmailRequest), typeof(ExternalLoginsResponse), typeof(ExternalLoginEntry),
-				typeof(ExternalProviderEntry), typeof(RemoveExternalLoginRequest), typeof(DeletePersonalDataRequest)
+				typeof(ExternalProviderEntry), typeof(RemoveExternalLoginRequest), typeof(DeletePersonalDataRequest),
+				.. Train3Records
 			])
 			wireType.GetCustomAttribute<AuthorizeAttribute>()
 				.ShouldBeNull(
@@ -66,9 +82,7 @@ public sealed class RequestContractTests
 	[Fact]
 	void Every_service_method_ends_with_a_trailing_cancellation_token()
 	{
-		foreach (var method in typeof(IAuthenticationService).GetMethods()
-			.Concat(typeof(IIdentityService).GetMethods())
-			.Concat(typeof(IAccountService).GetMethods()))
+		foreach (var method in Contracts.SelectMany(c => c.GetMethods()))
 			method.GetParameters()[^1].ParameterType.ShouldBe(typeof(CancellationToken));
 	}
 
@@ -86,9 +100,7 @@ public sealed class RequestContractTests
 	{
 		// A code-first gRPC method without [OperationContract] is a silently dead endpoint —
 		// this lock covers every current and future operation on every contract.
-		Type[] contracts = [typeof(IAuthenticationService), typeof(IIdentityService), typeof(IAccountService)];
-
-		foreach (var method in contracts.SelectMany(c => c.GetMethods()))
+		foreach (var method in Contracts.SelectMany(c => c.GetMethods()))
 			method.GetCustomAttribute<OperationContractAttribute>()
 				.ShouldNotBeNull($"{method.DeclaringType!.Name}.{method.Name} is missing [OperationContract]");
 	}
@@ -167,5 +179,8 @@ public sealed class RequestContractTests
 		ExternalLoginsResponse response = new() { CanRemove = false };
 		response.Logins.ShouldBeEmpty();
 		response.AvailableProviders.ShouldBeEmpty();
+		new RecoveryCodesResponse().RecoveryCodes.ShouldBeEmpty();
+		new PasskeysResponse().Passkeys.ShouldBeEmpty();
+		new SignInMethodsResponse().Providers.ShouldBeEmpty();
 	}
 }

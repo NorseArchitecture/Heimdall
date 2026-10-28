@@ -1,0 +1,41 @@
+@page "/Account/Manage/Disable2fa"
+@inherits OutcomeComponentBase
+@inject ITwoFactorService TwoFactorService
+@inject ISessionTransition SessionTransition
+
+<PageTitle>Disable two-factor authentication (2FA)</PageTitle>
+
+<h3>Disable two-factor authentication (2FA)</h3>
+<FluentGrid>
+    <FluentGridItem sm="9">
+        @if (Problem is not null)
+        {
+            <div class="alert alert-danger" role="alert">
+                @foreach (var message in ProblemMessages.Of(Problem, "Two-factor authentication could not be disabled."))
+                {
+                    <p>@message</p>
+                }
+            </div>
+        }
+        <FluentMessageBar Margin="@Margin.Bottom2" Intent="MessageBarIntent.Warning" AllowDismiss="false">This action only disables 2FA.</FluentMessageBar>
+        <p>
+            Disabling 2FA does not change the keys used in authenticator apps. If you wish to change the key used in an authenticator app you should <FluentLink Href="Account/Manage/ResetAuthenticator">reset your authenticator keys.</FluentLink>
+        </p>
+        <p style="margin-top: 10px; text-align: end;">
+            <FluentButton Appearance="ButtonAppearance.Primary" Disabled="!CanAct" OnClick="DisableAsync">Disable 2FA</FluentButton>
+        </p>
+    </FluentGridItem>
+</FluentGrid>
+
+@code {
+    /// <summary>
+    ///     Click-to-disable, never a state-changing GET: a bare render disables nothing, and the page loads
+    ///     nothing either — an account with two-factor already off is the server's <c>Validation</c> answer
+    ///     on the click, rendered in place. The base's dispatch owns the disposal discipline and the in-flight
+    ///     guard (the button binds <c>CanAct</c>). Disabling rotates the security stamp, so success begins the
+    ///     session transition onto the server's <c>NextUrl</c>.
+    /// </summary>
+    Task DisableAsync() =>
+        DispatchAsync(ct => TwoFactorService.DisableTwoFactor(ct), result => SessionTransition.Begin(result));
+
+}

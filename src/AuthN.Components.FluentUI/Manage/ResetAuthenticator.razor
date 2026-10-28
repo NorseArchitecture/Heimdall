@@ -1,0 +1,42 @@
+@page "/Account/Manage/ResetAuthenticator"
+@inherits OutcomeComponentBase
+@inject ITwoFactorService TwoFactorService
+@inject ISessionTransition SessionTransition
+
+<PageTitle>Reset authenticator key</PageTitle>
+
+<h3>Reset authenticator key</h3>
+<FluentGrid>
+    <FluentGridItem sm="9">
+        @if (Problem is not null)
+        {
+            <div class="alert alert-danger" role="alert">
+                @foreach (var message in ProblemMessages.Of(Problem, "Your authenticator key could not be reset."))
+                {
+                    <p>@message</p>
+                }
+            </div>
+        }
+        <FluentMessageBar Margin="@Margin.Bottom2" Intent="MessageBarIntent.Warning" AllowDismiss="false">If you reset your authenticator key your authenticator app will not work until you reconfigure it.</FluentMessageBar>
+        <p>
+            This process disables 2FA until you verify your authenticator app.
+            If you do not complete your authenticator app configuration you may lose access to your account.
+        </p>
+        <p style="margin-top: 10px; text-align: end;">
+            <FluentButton Appearance="ButtonAppearance.Primary" Disabled="!CanAct" OnClick="ResetAsync">Reset authenticator key</FluentButton>
+        </p>
+    </FluentGridItem>
+</FluentGrid>
+
+@code {
+    /// <summary>
+    ///     Click-to-reset, never a state-changing GET: a bare render resets nothing. The base's dispatch owns
+    ///     the disposal discipline and the in-flight guard (the button binds <c>CanAct</c>, so a double click
+    ///     sends one request). The reset disables two-factor and rotates the security stamp, so success begins
+    ///     the session transition onto the server's <c>NextUrl</c>; a failure lands in <c>Problem</c> and
+    ///     renders in place above the standing page.
+    /// </summary>
+    Task ResetAsync() =>
+        DispatchAsync(ct => TwoFactorService.ResetAuthenticator(ct), result => SessionTransition.Begin(result));
+
+}

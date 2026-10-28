@@ -17,7 +17,7 @@ else
         <div class="alert alert-danger">Error changing email.</div>
     }
 
-    <FluentButton Appearance="ButtonAppearance.Primary" Disabled="IsDispatching" OnClick="HandleConfirmAsync">Confirm email change</FluentButton>
+    <FluentButton Appearance="ButtonAppearance.Primary" Disabled="!CanAct" OnClick="HandleConfirmAsync">Confirm email change</FluentButton>
 }
 
 @code {

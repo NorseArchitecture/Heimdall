@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.FluentUI.AspNetCore.Components;
+using Norse.Abstractions.Contracts;
 using Norse.AuthN.Services;
 
 namespace Norse.AuthN.Components.FluentUI.Tests;
@@ -16,6 +17,11 @@ public sealed class GateLayoutTests : InteractiveBunitContext
 		// GateLayout hosts FluentUI-backed pages via @Body; loose JS interop mode matches every
 		// other FluentUI-touching test in this project (see LoginTests/RegisterTests).
 		JSInterop.Mode = JSRuntimeMode.Loose;
+		// Login renders SignInMethodLinks, which loads the sign-in methods on render.
+		var signInMethods = Substitute.For<ISignInMethodsService>();
+		signInMethods.GetSignInMethods(Arg.Any<GetSignInMethodsRequest>(), Arg.Any<CancellationToken>())
+			.Returns(Outcome<SignInMethodsResponse>.Ok(new()));
+		Services.AddSingleton(signInMethods);
 	}
 
 	[Fact]

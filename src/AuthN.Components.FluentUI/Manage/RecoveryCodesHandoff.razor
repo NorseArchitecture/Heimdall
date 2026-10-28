@@ -1,0 +1,79 @@
+@page "/Account/Manage/ShowRecoveryCodes"
+@using Norse.AuthN.Components.FluentUI.Shared
+@inherits OutcomeComponentBase
+@inject ITwoFactorService TwoFactorService
+@inject NavigationManager Navigation
+
+@* Named apart from Shared/ShowRecoveryCodes on purpose: _Imports.razor imports Manage, so a page of the
+   same name would shadow the panel it renders and render itself. *@
+
+<PageTitle>Recovery codes</PageTitle>
+
+@if (_handoff is null)
+{
+    <div class="alert alert-danger" role="alert">There are no recovery codes to show.</div>
+}
+else if (_codes.Length > 0)
+{
+    <ShowRecoveryCodes RecoveryCodes="@_codes" StatusMessage="@ManageStatus.Text(ManageStatus.AuthenticatorVerified)"/>
+}
+else if (Problem is not null)
+{
+    <div class="alert alert-danger" role="alert">
+        @foreach (var message in ProblemMessages.Of(Problem, "Your recovery codes could not be shown."))
+        {
+            <p>@message</p>
+        }
+    </div>
+    @* Two-factor is on and no codes are in view, so a dead end would strand the user: the static sibling
+       link to a fresh set (spec §6.5's sanctioned exception), never a composed flow URL. *@
+    <p>You can <FluentLink Href="Account/Manage/GenerateRecoveryCodes">Generate new recovery codes</FluentLink>.</p>
+}
+else
+{
+    <Loader/>
+}
+
+@code {
+    /// <summary>The bare route the handoff is stripped to, relative to the base URI so the PathBase carries.</summary>
+    const string Route = "Account/Manage/ShowRecoveryCodes";
+
+    /// <summary>The handoff held for the reveal — survives the query being stripped from the URL. Null when none arrived.</summary>
+    string? _handoff;
+
+    /// <summary>The revealed recovery codes. Empty until the reveal succeeds.</summary>
+    string[] _codes = [];
+
+    /// <summary>
+    ///     The opaque, one-shot handoff the server put on the stamp-rotating operation's <c>NextUrl</c>; the
+    ///     client never decodes it.
+    /// </summary>
+    [SupplyParameterFromQuery]
+    public string? Handoff { get; set; }
+
+    /// <summary>
+    ///     Holds the handoff once. The strip navigates this page to its bare route, which re-supplies a null
+    ///     query to the same instance; the held value is what the reveal uses, so that null changes nothing.
+    /// </summary>
+    protected override void OnInitialized() =>
+        _handoff = string.IsNullOrEmpty(Handoff) ? null : Handoff;
+
+    /// <summary>
+    ///     On the first interactive render — never during a prerender, which would spend the one-shot handoff
+    ///     on a page the circuit then replaces — replaces the history entry with the bare route, so the sealed
+    ///     codes leave the address bar and history, then redeems the handoff. A failure, including the server's
+    ///     already-shown refusal, renders in place with no codes.
+    /// </summary>
+    /// <param name="firstRender">Whether this is the component's first render.</param>
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender || !RendererInfo.IsInteractive || _handoff is null)
+            return;
+
+        Navigation.NavigateTo(Route, new NavigationOptions { ReplaceHistoryEntry = true });
+        await DispatchAsync(ct => TwoFactorService.RevealRecoveryCodes(new() { Handoff = _handoff }, ct),
+            response => _codes = response.RecoveryCodes);
+        StateHasChanged();
+    }
+
+}

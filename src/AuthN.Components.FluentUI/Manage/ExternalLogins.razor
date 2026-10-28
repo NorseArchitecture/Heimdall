@@ -23,7 +23,7 @@ else
     @if (Problem is not null)
     {
         <div class="alert alert-danger" role="alert">
-            @foreach (var message in Messages(Problem))
+            @foreach (var message in ProblemMessages.Of(Problem, "The external login was not removed."))
             {
                 <p>@message</p>
             }
@@ -42,7 +42,7 @@ else
                     <td>
                         @if (_logins.CanRemove)
                         {
-                            <FluentButton Appearance="ButtonAppearance.Primary" Disabled="IsDispatching" data-provider="@login.LoginProvider"
+                            <FluentButton Appearance="ButtonAppearance.Primary" Disabled="!CanAct" data-provider="@login.LoginProvider"
                                           Title="@($"Remove this {login.DisplayName} login from your account")"
                                           OnClick="() => RemoveAsync(login)">Remove</FluentButton>
                         }
@@ -85,7 +85,7 @@ else
 
     /// <summary>
     ///     Click-to-remove, never a state-changing GET: a bare render removes nothing. The base's dispatch owns the
-    ///     disposal discipline and the in-flight guard (the button binds <c>IsDispatching</c>, so a double click
+    ///     disposal discipline and the in-flight guard (the button binds <c>CanAct</c>, so a double click
     ///     sends one request). Success begins the session transition — the removal refreshes the sign-in; a
     ///     refusal (the server's last-sign-in-method guard, §5.9) lands in <c>Problem</c> and renders the server's
     ///     text in place.
@@ -94,15 +94,5 @@ else
         DispatchAsync(
             ct => AccountService.RemoveExternalLogin(new() { LoginProvider = login.LoginProvider, ProviderKey = login.ProviderKey }, ct),
             result => SessionTransition.Begin(result));
-
-    /// <summary>
-    ///     The refusal's messages, or a generic line when the failure carries none (a gRPC-decoded fault arrives
-    ///     without errors).
-    /// </summary>
-    static IEnumerable<string> Messages(Problem problem)
-    {
-        var messages = problem.Errors.Values.SelectMany(m => m).ToList();
-        return messages.Count > 0 ? messages : ["The external login was not removed."];
-    }
 
 }

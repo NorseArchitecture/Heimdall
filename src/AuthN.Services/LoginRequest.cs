@@ -46,4 +46,11 @@ public sealed record LoginRequest
 	/// <summary>Whether to persist the authentication cookie across browser sessions.</summary>
 	[DataMember(Order = 3)]
 	public bool RememberMe { get; set; }
+
+	/// <summary>
+	///     The return URL the sign-in page received — the server validates it and authors the
+	///     <c>NextUrl</c>; the client never navigates to it directly.
+	/// </summary>
+	[DataMember(Order = 4)]
+	public string ReturnUrl { get; set; } = string.Empty;
 }

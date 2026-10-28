@@ -1,0 +1,102 @@
+@page "/Account/Manage/TwoFactorAuthentication"
+@inherits OutcomeComponentBase
+@inject IAccountService AccountService
+@inject ITwoFactorService TwoFactorService
+@inject ISessionTransition SessionTransition
+
+<PageTitle>Two-factor authentication (2FA)</PageTitle>
+
+<h3>Two-factor authentication (2FA)</h3>
+
+@if (_status is null)
+{
+    @if (IsDispatching)
+    {
+        <Loader/>
+    }
+    else if (Problem is not null)
+    {
+        <div class="alert alert-danger" role="alert">Your two-factor settings could not be loaded.</div>
+    }
+}
+else
+{
+    <FluentGrid>
+        <FluentGridItem sm="9">
+            @if (Problem is not null)
+            {
+                <div class="alert alert-danger" role="alert">
+                    @foreach (var message in ProblemMessages.Of(Problem, "This browser could not be forgotten."))
+                    {
+                        <p>@message</p>
+                    }
+                </div>
+            }
+
+            @if (_status.TwoFactorEnabled)
+            {
+                if (_status.RecoveryCodesLeft == 0)
+                {
+                    <FluentMessageBar Margin="@Margin.Bottom2" Intent="MessageBarIntent.Warning" AllowDismiss="false">You have no recovery codes left.</FluentMessageBar>
+                    <p>You must <FluentLink Href="Account/Manage/GenerateRecoveryCodes">generate a new set of recovery codes</FluentLink> before you can log in with a recovery code.</p>
+                }
+                else if (_status.RecoveryCodesLeft == 1)
+                {
+                    <FluentMessageBar Margin="@Margin.Bottom2" Intent="MessageBarIntent.Warning" AllowDismiss="false">You have 1 recovery code left.</FluentMessageBar>
+                    <p>You can <FluentLink Href="Account/Manage/GenerateRecoveryCodes">generate a new set of recovery codes</FluentLink>.</p>
+                }
+                else if (_status.RecoveryCodesLeft <= 3)
+                {
+                    <FluentMessageBar Margin="@Margin.Bottom2" Intent="MessageBarIntent.Warning" AllowDismiss="false">You have @_status.RecoveryCodesLeft recovery codes left.</FluentMessageBar>
+                    <p>You should <FluentLink Href="Account/Manage/GenerateRecoveryCodes">generate a new set of recovery codes</FluentLink>.</p>
+                }
+
+                <FluentLink Href="Account/Manage/Disable2fa">Disable 2FA</FluentLink>
+                <FluentLink Href="Account/Manage/GenerateRecoveryCodes">Reset recovery codes</FluentLink>
+            }
+
+            @* Outside the two-factor branch on purpose: the remember-machine cookie outlives a disabled 2FA,
+               and clearing it is harmless, so a remembered machine is always offered the forget. *@
+            @if (_status.IsMachineRemembered)
+            {
+                <FluentButton Appearance="ButtonAppearance.Primary" Disabled="!CanAct" OnClick="ForgetAsync">Forget this browser</FluentButton>
+            }
+
+            <h4>Authenticator app</h4>
+            @if (!_status.HasAuthenticator)
+            {
+                <FluentLink Href="Account/Manage/EnableAuthenticator">Add authenticator app</FluentLink>
+            }
+            else
+            {
+                <FluentLink Href="Account/Manage/EnableAuthenticator">Set up authenticator app</FluentLink>
+                <FluentLink Href="Account/Manage/ResetAuthenticator">Reset authenticator app</FluentLink>
+            }
+        </FluentGridItem>
+    </FluentGrid>
+}
+
+@code {
+    /// <summary>The caller's account state, loaded once on initialization. Null until the load succeeds.</summary>
+    AccountStatusResponse? _status;
+
+    /// <summary>
+    ///     Loads the account status the page branches on. A failure renders in place through the base's
+    ///     <c>Problem</c>. There is no tracking-consent gate: the scaffold's <c>ITrackingConsentFeature</c> check
+    ///     has no host feature behind it here (spec §11). Every link the page renders is a static,
+    ///     stateless sibling link; the only operation it performs is the forget.
+    /// </summary>
+    protected override Task OnInitializedAsync() =>
+        DispatchAsync(ct => AccountService.GetAccountStatus(ct), status => _status = status);
+
+    /// <summary>
+    ///     Click-to-forget, never a state-changing GET: a bare render forgets nothing. The base's dispatch owns
+    ///     the disposal discipline and the in-flight guard (the button binds <c>CanAct</c>, so a double click
+    ///     sends one request). Success begins the session transition onto the server's <c>NextUrl</c> — the
+    ///     cookie delete rides a deferred completion on a circuit, so a document load is what carries it; a
+    ///     failure lands in <c>Problem</c> and renders in place above the standing page.
+    /// </summary>
+    Task ForgetAsync() =>
+        DispatchAsync(ct => TwoFactorService.ForgetTwoFactorClient(ct), result => SessionTransition.Begin(result));
+
+}

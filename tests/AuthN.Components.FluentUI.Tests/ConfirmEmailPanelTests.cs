@@ -1,4 +1,5 @@
 using Bunit;
+using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.FluentUI.AspNetCore.Components;
 using Norse.Abstractions.Contracts;
@@ -17,6 +18,8 @@ public sealed class ConfirmEmailPanelTests : BunitContext
 		// loose mode is bunit's own documented answer (same rationale as LoginTests).
 		JSInterop.Mode = JSRuntimeMode.Loose;
 		Services.AddSingleton(_service);
+		// Last: setting the renderer locks the service provider.
+		SetRendererInfo(new RendererInfo("Server", isInteractive: true));
 	}
 
 	IRenderedComponent<ConfirmEmailPanel> RenderPanel() =>

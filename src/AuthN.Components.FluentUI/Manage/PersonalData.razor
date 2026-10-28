@@ -1,6 +1,6 @@
 @page "/Account/Manage/PersonalData"
 @using Microsoft.JSInterop
-@inherits AsyncComponentBase
+@inherits OutcomeComponentBase
 @implements IAsyncDisposable
 @inject IIdentityService IdentityService
 @inject NavigationManager Navigation
@@ -12,11 +12,20 @@
 
 <FluentGrid>
     <FluentGridItem xs="12" sm="6">
+        @if (Problem is not null)
+        {
+            <div class="alert alert-danger" role="alert">
+                @foreach (var message in ProblemMessages.Of(Problem, "Your personal data could not be downloaded."))
+                {
+                    <p>@message</p>
+                }
+            </div>
+        }
         <p>Your account contains personal data that you have given us. This page allows you to download or delete that data.</p>
         <p>
             <strong>Deleting this data will permanently remove your account, and this cannot be recovered.</strong>
         </p>
-        <FluentButton Type="ButtonType.Button" Appearance="ButtonAppearance.Primary" Style="width:20%;" OnClick="HandleDownloadAsync">Download</FluentButton>
+        <FluentButton Type="ButtonType.Button" Appearance="ButtonAppearance.Primary" Style="width:20%;" Disabled="!CanAct" OnClick="HandleDownloadAsync">Download</FluentButton>
         <p style="margin-top: 10px; text-align: end;">
             <FluentLink Href="Account/Manage/DeletePersonalData">Delete your personal data</FluentLink>
         </p>
@@ -33,16 +42,16 @@
     // JsonSerializer never runs here — NORSE070 bans System.Text.Json calls outside Midgard/
     // Yggdrasil, so the JS module owns the JSON.stringify call; personalData crosses the JS
     // interop boundary as a plain record, marshaled by the Blazor runtime itself, not by us.
-    async Task HandleDownloadAsync()
-    {
-        var outcome = await IdentityService.GetMyPersonalDataAsync(new(), CancellationToken);
-        if (outcome is not Success<PersonalDataResponse>(var personalData))
-            return; // Failed(...) — nothing to download; richer error surfacing is a future pass.
+    // The base's dispatch owns the in-flight guard (the button binds CanAct, so a double click
+    // downloads once) and renders a failure in place through Problem.
+    Task HandleDownloadAsync() =>
+        DispatchAsync(ct => IdentityService.GetMyPersonalDataAsync(new(), ct), DownloadAsync);
 
-        // Cached, not re-imported per click — the module reference is disposed in DisposeAsync below.
-        // JSDisconnectedException means the circuit dropped mid-call (e.g. navigation away
-        // during the download); nothing to download to at that point — richer error surfacing
-        // is the same future pass as the Failed(...) case above.
+    // Cached, not re-imported per click — the module reference is disposed in DisposeAsync below.
+    // JSDisconnectedException means the circuit dropped mid-call (e.g. navigation away during the
+    // download); there is no page left to download to, or to render a problem onto.
+    async Task DownloadAsync(PersonalDataResponse personalData)
+    {
         try
         {
             _module ??= await JSRuntime.InvokeAsync<IJSObjectReference>("import", "./_content/Norse.AuthN.Components.FluentUI/downloadFile.js");

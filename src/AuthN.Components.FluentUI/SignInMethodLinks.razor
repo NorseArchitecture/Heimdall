@@ -1,0 +1,91 @@
+@inherits OutcomeComponentBase
+@inject ISignInMethodsService SignInMethodsService
+
+@if (Problem is not null)
+{
+    <div class="alert alert-danger" role="alert">Other sign-in methods could not be loaded.</div>
+}
+else if (_methods is not null)
+{
+    <div class="sign-in-methods">
+        @if (ShowPasskey)
+        {
+            <p><a href="@_methods.PasskeySignInUrl">Use a passkey</a></p>
+        }
+        @if (ShowPassword)
+        {
+            <p><a href="@_methods.PasswordSignInUrl">Use a password</a></p>
+        }
+        @if (_methods.Providers.Length > 0)
+        {
+            <div class="sign-in-providers">
+                @foreach (var provider in _methods.Providers)
+                {
+                    <p><a href="@provider.StartUrl" target="_top">Sign in with @provider.DisplayName</a></p>
+                }
+            </div>
+        }
+    </div>
+}
+
+@code {
+    /// <summary>The return URL the sign-in page received, handed to the server to carry onto every link.</summary>
+    [Parameter]
+    public string? ReturnUrl { get; set; }
+
+    /// <summary>Whether to offer the password sign-in link (false on the password page itself).</summary>
+    [Parameter]
+    public bool ShowPassword { get; set; }
+
+    /// <summary>Whether to offer the passkey sign-in link (false on the passkey page itself).</summary>
+    [Parameter]
+    public bool ShowPasskey { get; set; }
+
+    /// <summary>The server's links, rendered verbatim. Null until a load succeeds.</summary>
+    SignInMethodsResponse? _methods;
+
+    /// <summary>The return URL the last load ran for; a reload happens only when it changes.</summary>
+    string? _loadedFor;
+
+    bool _loaded;
+
+    /// <summary>
+    ///     Loads the links once per <see cref="ReturnUrl" />: the show flags only select among links already
+    ///     loaded. The server authors every URL, with the return URL already carried — this component composes
+    ///     none. Provider links are plain anchors with <c>target="_top"</c>, so the interactive router never
+    ///     intercepts them: each start URL is an HTTP endpoint that only a full page load reaches. A failure
+    ///     renders only the problem line, through the base's <c>Problem</c>.
+    /// </summary>
+    protected override Task OnParametersSetAsync()
+    {
+        if (_loaded && _loadedFor == ReturnUrl)
+            return Task.CompletedTask;
+
+        _loaded = true;
+        _loadedFor = ReturnUrl;
+        _methods = null;
+        return LoadAsync();
+    }
+
+    /// <summary>
+    ///     The base drops a dispatch that overlaps one in flight, so a <see cref="ReturnUrl" /> change mid-load
+    ///     starts nothing by itself: the load in flight re-dispatches for the current value once it completes, and
+    ///     only a load for the current value assigns links. Disposal ends the loop.
+    /// </summary>
+    async Task LoadAsync()
+    {
+        string? requested;
+        do
+        {
+            requested = _loadedFor;
+            await DispatchAsync(
+                ct => SignInMethodsService.GetSignInMethods(new() { ReturnUrl = requested ?? string.Empty }, ct),
+                methods =>
+                {
+                    if (requested == _loadedFor)
+                        _methods = methods;
+                });
+        } while (requested != _loadedFor && !CancellationToken.IsCancellationRequested);
+    }
+
+}
