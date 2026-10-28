@@ -8,7 +8,7 @@ using Norse.AuthN.Services;
 
 namespace Norse.AuthN.Components.FluentUI.Tests;
 
-public sealed class GateLayoutTests : BunitContext
+public sealed class GateLayoutTests : InteractiveBunitContext
 {
 	public GateLayoutTests()
 	{

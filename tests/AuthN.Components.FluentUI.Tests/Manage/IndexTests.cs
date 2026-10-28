@@ -9,7 +9,7 @@ using Index = Norse.AuthN.Components.FluentUI.Manage.Index;
 
 namespace Norse.AuthN.Components.FluentUI.Tests.Manage;
 
-public sealed class IndexTests : BunitContext
+public sealed class IndexTests : InteractiveBunitContext
 {
 	readonly IIdentityService _identity = Substitute.For<IIdentityService>();
 

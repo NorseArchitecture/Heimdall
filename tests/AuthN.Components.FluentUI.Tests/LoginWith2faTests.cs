@@ -8,7 +8,7 @@ using Norse.AuthN.Services;
 
 namespace Norse.AuthN.Components.FluentUI.Tests;
 
-public sealed class LoginWith2faTests : BunitContext
+public sealed class LoginWith2faTests : InteractiveBunitContext
 {
 	readonly IAuthenticationService _service = Substitute.For<IAuthenticationService>();
 	readonly ISessionTransition _sessionTransition = Substitute.For<ISessionTransition>();

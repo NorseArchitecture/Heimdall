@@ -52,6 +52,26 @@ public sealed class ExternalLoginsTests : BunitContext
 	}
 
 	[Fact]
+	void Every_link_to_add_a_provider_forces_a_full_page_load()
+	{
+		var page = RenderWith(Logins(canRemove: true) with
+		{
+			AvailableProviders =
+			[
+				new() { Name = "Microsoft", DisplayName = "Microsoft Account" },
+				new() { Name = "GitHub", DisplayName = "GitHub" },
+			],
+		});
+
+		// LinkExternalLogin is a server endpoint that challenges the provider, not a routable page. FluentUI's
+		// fluent-link navigates through Blazor.navigateTo on a same-origin click, passing its force-load
+		// attribute as forceLoad, so without it the router answers Not Found on a live circuit.
+		var links = page.FindAll("[href*=LinkExternalLogin]");
+		links.Count.ShouldBe(2);
+		links.ShouldAllBe(link => link.GetAttribute("force-load") == "true");
+	}
+
+	[Fact]
 	void Renders_the_page_heading_like_its_siblings()
 	{
 		var page = RenderWith(Logins(canRemove: true));

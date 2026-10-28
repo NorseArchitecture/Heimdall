@@ -9,7 +9,7 @@ using Norse.Primitives;
 
 namespace Norse.AuthN.Components.FluentUI.Tests;
 
-public sealed class LoginTests : BunitContext
+public sealed class LoginTests : InteractiveBunitContext
 {
 	readonly IAuthenticationService _loginService = Substitute.For<IAuthenticationService>();
 	readonly ISessionTransition _sessionTransition = Substitute.For<ISessionTransition>();

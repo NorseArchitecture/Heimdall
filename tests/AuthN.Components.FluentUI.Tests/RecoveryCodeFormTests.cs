@@ -8,7 +8,7 @@ using Norse.AuthN.Services;
 
 namespace Norse.AuthN.Components.FluentUI.Tests;
 
-public sealed class RecoveryCodeFormTests : BunitContext
+public sealed class RecoveryCodeFormTests : InteractiveBunitContext
 {
 	readonly IAuthenticationService _service = Substitute.For<IAuthenticationService>();
 	readonly ISessionTransition _sessionTransition = Substitute.For<ISessionTransition>();

@@ -60,6 +60,7 @@ else
             @foreach (var provider in _logins.AvailableProviders)
             {
                 <FluentLink Href="@($"Account/Manage/LinkExternalLogin?provider={Uri.EscapeDataString(provider.Name)}")"
+                            ForceLoad="true"
                             Title="@($"Log in using your {provider.DisplayName} account")">@provider.DisplayName</FluentLink>
             }
         </p>

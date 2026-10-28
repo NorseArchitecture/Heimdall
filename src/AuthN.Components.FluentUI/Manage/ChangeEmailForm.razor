@@ -22,7 +22,7 @@
     <ModelValidationSummary/>
     <FluentTextInput @bind-Value="_request.NewEmailInput" Label="New email"
         ValidationFieldFor="@((Expression<Func<Result<EmailAddress>>>)(() => _request.NewEmail))"/>
-    <FluentButton Type="ButtonType.Submit" Appearance="ButtonAppearance.Primary" Disabled="IsSubmitting">Change email</FluentButton>
+    <FluentButton Type="ButtonType.Submit" Appearance="ButtonAppearance.Primary" Disabled="!CanSubmit">Change email</FluentButton>
 </EditForm>
 
 @code {

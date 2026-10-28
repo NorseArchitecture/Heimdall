@@ -9,7 +9,7 @@ using Norse.AuthN.Services;
 
 namespace Norse.AuthN.Components.FluentUI.Tests.Manage;
 
-public sealed class SetPasswordFormTests : BunitContext
+public sealed class SetPasswordFormTests : InteractiveBunitContext
 {
 	readonly IAccountService _account = Substitute.For<IAccountService>();
 	readonly ISessionTransition _sessionTransition = Substitute.For<ISessionTransition>();

@@ -55,6 +55,8 @@ public sealed class LoginSilentFailureTests
 		service.Login(Arg.Any<LoginRequest>(), Arg.Any<CancellationToken>())
 			.Returns(_ => Task.FromResult(outcome));
 		context.Services.AddSingleton(service);
+		// Login reads RendererInfo; set after registration, since setting it locks the provider.
+		context.SetRendererInfo(new("Server", true));
 
 		var component = context.Render<Login>();
 		var inputs = component.FindAll("fluent-text-input");

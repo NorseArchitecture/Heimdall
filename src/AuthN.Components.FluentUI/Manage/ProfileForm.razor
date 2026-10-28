@@ -8,7 +8,7 @@
     <FluentTextInput Value="@Email" Label="Email" Disabled="true"/>
     <FluentTextInput @bind-Value="_request.PhoneInput" Label="Phone number" Placeholder="+15551234567"
         ValidationFieldFor="@((Expression<Func<Result<PhoneNumber>?>>)(() => _request.Phone))"/>
-    <FluentButton Type="ButtonType.Submit" Appearance="ButtonAppearance.Primary" Disabled="IsSubmitting">Save</FluentButton>
+    <FluentButton Type="ButtonType.Submit" Appearance="ButtonAppearance.Primary" Disabled="!CanSubmit">Save</FluentButton>
 </EditForm>
 
 @code {
