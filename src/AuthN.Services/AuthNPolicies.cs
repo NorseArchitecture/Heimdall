@@ -38,4 +38,35 @@ public static class AuthNPolicies
 	[NorsePolicy(Account)]
 	public static void ConfigureAccount(AuthorizationPolicyBuilder policy) =>
 		policy.RequireAuthenticatedUser().RequireAssertion(static context => !context.User.IsInRole(NorseRoles.Anonymous));
+
+	/// <summary>
+	///     The read-only account tier: what <see cref="Account" /> admits, plus a user bearer minted for
+	///     <see cref="NorseAudiences.User" /> (spec 2026-10-29-openiddict-authorization-code-pkce-step-up §7.5).
+	/// </summary>
+	public const string AccountRead = "AuthN.AccountRead";
+
+	/// <summary>
+	///     Configures <see cref="AccountRead" />: the <see cref="NorseLanes.Identity" /> or <see cref="NorseLanes.User" />
+	///     lane, never the anonymous principal, and a <see cref="NorseLanes.User" />-lane principal must carry
+	///     <c>aud = </c><see cref="NorseAudiences.User" />.
+	/// </summary>
+	/// <param name="policy">The builder to configure.</param>
+	[NorsePolicy(AccountRead)]
+	public static void ConfigureAccountRead(AuthorizationPolicyBuilder policy) =>
+		policy.ReadsOwnAccount();
+
+	/// <param name="policy">The builder to configure.</param>
+	extension(AuthorizationPolicyBuilder policy)
+	{
+		/// <summary>
+		///     The shape <see cref="AccountRead" /> and <see cref="IdentityPolicies.Self" /> share: a signed-in account on
+		///     the cookie lane or on a user bearer pinned to <see cref="NorseAudiences.User" />.
+		/// </summary>
+		/// <returns>The builder, for chaining.</returns>
+		internal AuthorizationPolicyBuilder ReadsOwnAccount() =>
+			policy.RequireLane(NorseLanes.Identity, NorseLanes.User)
+				.RequireAuthenticatedUser()
+				.RequireAssertion(static context => !context.User.IsInRole(NorseRoles.Anonymous))
+				.RequireAudience(NorseAudiences.User, NorseLanes.User);
+	}
 }

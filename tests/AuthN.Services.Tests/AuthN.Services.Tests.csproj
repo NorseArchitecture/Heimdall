@@ -1,5 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
 	<ItemGroup>
+		<!-- Test-only: the policy facts evaluate through the lane and audience handlers a real host registers. -->
+		<NorseRef Include="Infrastructure.Web.Server">
+			<Repo>Midgard</Repo>
+		</NorseRef>
 		<ProjectReference Include="../../src/AuthN.Services/AuthN.Services.csproj" />
 		<PackageReference Include="Microsoft.Extensions.Logging" Version="11.*-*" />
 		<PackageReference Include="protobuf-net" Version="3.*" />
