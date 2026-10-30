@@ -29,19 +29,24 @@ public static class IdentityPolicies
 	public const string SystemRole = "System";
 
 	/// <summary>
-	///     Configures <see cref="Self" /> — hardened identically to <see cref="AuthNPolicies.Account" />.
-	///     The anonymous-cookie principal is <em>authenticated</em> (spec
-	///     2026-10-26-identity-account-lifecycle-over-grpc §4.4), so <c>RequireAuthenticatedUser()</c>
-	///     alone would admit it; the <see cref="NorseRoles.Anonymous" /> role is excluded explicitly.
+	///     Configures <see cref="Self" /> — the same shape as <see cref="AuthNPolicies.AccountRead" /> (spec
+	///     2026-10-29-openiddict-authorization-code-pkce-step-up §7.5): the <see cref="NorseLanes.Identity" /> or
+	///     <see cref="NorseLanes.User" /> lane, a <see cref="NorseLanes.User" />-lane principal pinned to
+	///     <see cref="NorseAudiences.User" />. The anonymous-cookie principal is <em>authenticated</em> (spec
+	///     2026-10-26-identity-account-lifecycle-over-grpc §4.4), so the <see cref="NorseRoles.Anonymous" /> role is
+	///     still excluded explicitly.
 	/// </summary>
 	/// <param name="policy">The builder to configure.</param>
 	[NorsePolicy(Self)]
 	public static void ConfigureSelf(AuthorizationPolicyBuilder policy) =>
-		policy.RequireAuthenticatedUser().RequireAssertion(static context => !context.User.IsInRole(NorseRoles.Anonymous));
+		policy.ReadsOwnAccount();
 
-	/// <summary>Configures <see cref="MaskedDisclosure" />.</summary>
+	/// <summary>
+	///     Configures <see cref="MaskedDisclosure" />: the <see cref="NorseLanes.Identity" /> lane only, named
+	///     explicitly rather than left to the default closure because this is a disclosure door.
+	/// </summary>
 	/// <param name="policy">The builder to configure.</param>
 	[NorsePolicy(MaskedDisclosure)]
 	public static void ConfigureMaskedDisclosure(AuthorizationPolicyBuilder policy) =>
-		policy.RequireRole(SystemRole);
+		policy.RequireLane(NorseLanes.Identity).RequireRole(SystemRole);
 }
